@@ -1,4 +1,5 @@
 use crate::game_state::GameState;
+use crate::inputs::MouseCamera;
 use bevy::prelude::*;
 
 pub struct PreLoadingPlugin;
@@ -16,11 +17,27 @@ impl Plugin for PreLoadingPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<PreLoadingState>()
-            .add_system_set(SystemSet::on_enter(GameState::PreLoading).with_system(setup_pre_loading))
+            .add_system_set(SystemSet::on_enter(GameState::PreLoading)
+                .with_system(setup_camera)
+                .with_system(setup_pre_loading))
             .add_system_set(SystemSet::on_update(GameState::PreLoading).with_system(update_pre_loading));
     }
 }
 
+fn setup_camera(
+    mut commands: Commands,
+) {
+    // Camera
+    commands.spawn_bundle(Camera3dBundle {
+        transform: Transform::from_xyz(-1.0, 1.7, 0.0),
+        ..Default::default()
+    })
+    .insert(UiCameraConfig {
+        show_ui: true,
+        ..default()
+    })
+    .insert(MouseCamera::default());
+}
 
 fn setup_pre_loading(
     mut commands: Commands,
@@ -28,7 +45,6 @@ fn setup_pre_loading(
     mut pre_loading: ResMut<PreLoadingState>,
 ) {
     pre_loading.font_handle = asset_server.load("fonts/FiraSans-Bold.ttf");
-    commands.spawn_bundle(UiCameraBundle::default());
     pre_loading.ui_entity = Some(commands
         .spawn_bundle(TextBundle {
             text: Text {

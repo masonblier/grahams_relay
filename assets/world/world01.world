@@ -122,15 +122,15 @@ WorldAsset(
     ),
     WorldCollider(
       shape: "cuboid",
-      translation: Vec3(-5.599999904632568,1.5,2.0),
+      translation: Vec3(-5.799999713897705,1.5,1.5),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
-      scale: Vec3(0.0452391542494297,1.5299999713897705,2.165841579437256),
+      scale: Vec3(0.0452391542494297,1.5299999713897705,1.7326732873916626),
     ),
     WorldCollider(
       shape: "cuboid",
-      translation: Vec3(-5.599999904632568,1.5,7.800000190734863),
+      translation: Vec3(-5.799999713897705,1.5,7.5),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
-      scale: Vec3(0.0452391542494297,1.5299999713897705,1.7543318271636963),
+      scale: Vec3(0.0452391542494297,1.5299999713897705,2.456064462661743),
     ),
     WorldCollider(
       shape: "cuboid",
@@ -140,31 +140,31 @@ WorldAsset(
     ),
     WorldCollider(
       shape: "cuboid",
-      translation: Vec3(-8.199999809265137,1.5,5.100000381469727),
+      translation: Vec3(-8.199999809265137,1.5,4.100000381469727),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
       scale: Vec3(0.0452391542494297,1.5299999713897705,2.5990099906921387),
     ),
     WorldCollider(
       shape: "cuboid",
-      translation: Vec3(-6.0,1.5,3.3000004291534424),
+      translation: Vec3(-6.0,1.5,2.3000004291534424),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
       scale: Vec3(0.0452391542494297,1.5299999713897705,0.8316831588745117),
     ),
     WorldCollider(
       shape: "cuboid",
-      translation: Vec3(-6.0,1.5,6.90000057220459),
+      translation: Vec3(-6.0,1.5,5.90000057220459),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
       scale: Vec3(0.0452391542494297,1.5299999713897705,0.8316831588745117),
     ),
     WorldCollider(
       shape: "cuboid",
-      translation: Vec3(-7.099999904632568,1.2879397869110107,7.700542449951172),
+      translation: Vec3(-7.099999904632568,1.2879397869110107,6.700542449951172),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
       scale: Vec3(1.0825262069702148,1.5299999713897705,0.053063128143548965),
     ),
     WorldCollider(
       shape: "cuboid",
-      translation: Vec3(-7.099999904632568,1.2879397869110107,3.20054292678833),
+      translation: Vec3(-7.099999904632568,1.2879397869110107,2.20054292678833),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
       scale: Vec3(1.0825262069702148,1.5299999713897705,0.053063128143548965),
     ),
@@ -182,9 +182,15 @@ WorldAsset(
     ),
     WorldCollider(
       shape: "cuboid",
-      translation: Vec3(-7.090000152587891,-0.16952243447303772,5.15000057220459),
+      translation: Vec3(-7.090000152587891,-0.16952243447303772,4.15000057220459),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
       scale: Vec3(1.0436524152755737,0.09350000321865082,2.697103977203369),
+    ),
+    WorldCollider(
+      shape: "cuboid",
+      translation: Vec3(-4.0,0.06090260297060013,0.7026663422584534),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(0.52549809217453,0.6119999289512634,0.13755057752132416),
     ),
   ],
   doors: [
@@ -198,13 +204,33 @@ WorldAsset(
   ],
   interactables: [
     WorldInteractable(
-      shape: "cuboid",
+      shape: "ball",
       translation: Vec3(3.9277000427246094,1.2973099946975708,-2.834980010986328),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
       scale: Vec3(0.19999998807907104,0.19999998807907104,0.19999998807907104),
       interaction: Some(WorldInteraction(
         interaction: "click",
         actions: [("animate","switch01.toggle_on"),("audio_playonce","big_switch"),("toggle_door","door01")],
+      )),
+    ),
+    WorldInteractable(
+      shape: "ball",
+      translation: Vec3(-3.6750378608703613,0.7744045853614807,0.7061980962753296),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(0.19999998807907104,0.19999998807907104,0.19999998807907104),
+      interaction: Some(WorldInteraction(
+        interaction: "click",
+        actions: [("animate","switch02.toggle_on"),("audio_playonce","big_switch")],
+      )),
+    ),
+    WorldInteractable(
+      shape: "ball",
+      translation: Vec3(-4.208495616912842,0.7536249756813049,0.7173581719398499),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(0.19999998807907104,0.19999998807907104,0.19999998807907104),
+      interaction: Some(WorldInteraction(
+        interaction: "click",
+        actions: [("insert_fuese","small_fuse")],
       )),
     ),
   ],
@@ -215,6 +241,13 @@ WorldAsset(
       rotation: Quat(-0.5,0.5,0.5,0.5,),
       scale: Vec3(1.0,1.0,1.0),
       animatable: Some("switch01"),
+    ),
+    WorldProp(
+      prop: "big_switch",
+      translation: Vec3(-3.740000009536743,0.819618284702301,0.7526341080665588),
+      rotation: Quat(0.3631739318370819,0.0,-0.0,0.9317213892936707,),
+      scale: Vec3(1.0,1.0,1.0),
+      animatable: Some("switch02"),
     ),
     WorldProp(
       prop: "cardboard_closed",
@@ -260,10 +293,24 @@ WorldAsset(
     ),
     WorldProp(
       prop: "denki_train",
-      translation: Vec3(-7.100000381469727,0.8999999761581421,5.199999809265137),
+      translation: Vec3(-7.100000381469727,0.8999999761581421,4.199999809265137),
       rotation: Quat(0.0,0.0,-0.0,1.0,),
       scale: Vec3(1.0,1.0,1.0),
       animatable: None,
+    ),
+    WorldProp(
+      prop: "fuse_console",
+      translation: Vec3(-4.0,0.4772418737411499,0.7000000476837158),
+      rotation: Quat(0.0,-0.7071068286895752,-0.0,0.7071067094802856,),
+      scale: Vec3(1.0000001192092896,1.0000001192092896,1.0),
+      animatable: None,
+    ),
+    WorldProp(
+      prop: "fuse_small",
+      translation: Vec3(2.194746971130371,0.8217597007751465,-0.36560767889022827),
+      rotation: Quat(-0.11321055144071579,0.7542465925216675,0.644676923751831,0.051837291568517685,),
+      scale: Vec3(0.9999999403953552,1.0,1.0),
+      animatable: Some("fuse_small01"),
     ),
     WorldProp(
       prop: "house_roof01",

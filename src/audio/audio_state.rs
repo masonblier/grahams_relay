@@ -1,6 +1,6 @@
 use crate::GameState;
 use bevy::prelude::*;
-use bevy_kira_audio::{Audio,AudioPlugin,AudioSource};
+use bevy_kira_audio::prelude::*;
 
 pub enum AudioEventAction {
     PlayOnce,

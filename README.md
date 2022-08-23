@@ -2,6 +2,10 @@
 
 A puzzle game made with the Bevy game engine.
 
+Tech Demo / Pre-Alpha
+
+https://masonblier.github.io/grahams_relay/
+
 Build
 --
 Local build

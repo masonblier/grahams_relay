@@ -52,6 +52,8 @@ fn setup_world_loading(
             "city_fence" => Some(world_props.city_fence.clone()),
             "denki_train" => Some(world_props.denki_train.clone()),
             "door_blue" => Some(world_props.door_blue.clone()),
+            "fuse_console" => Some(world_props.fuse_console.clone()),
+            "fuse_small" => Some(world_props.fuse_small.clone()),
             "house_roof01" => Some(world_props.house_roof01.clone()),
             "house_woodside" => Some(world_props.house_woodside.clone()),
             "office_table" => Some(world_props.office_desk01.clone()),
@@ -71,10 +73,10 @@ fn setup_world_loading(
         };
         let mut prop_instance: Option<InstanceId> = None;
         if prop_handle.is_some() {
-            commands.spawn_bundle(TransformBundle::from(
+            commands.spawn_bundle(SpatialBundle::from_transform(
                 Transform::from_translation(data.translation)
             )).with_children(|parent2| {
-                let parent = parent2.spawn_bundle(TransformBundle::from(
+                let parent = parent2.spawn_bundle(SpatialBundle::from_transform(
                     Transform::from_rotation(data.rotation)
                 )).id();
                 if settings.graphics_settings.render_mode.as_str() != "colliders" {
@@ -98,7 +100,7 @@ fn setup_world_loading(
         };
         if shape_handle.is_some() {
             commands
-                    .spawn_bundle(TransformBundle::from(
+                    .spawn_bundle(SpatialBundle::from_transform(
                         Transform::from_translation(data.translation)))
                     .insert(shape_handle.unwrap())
                     .insert(CollisionGroups::new(0b0001, 0b0001))
@@ -127,10 +129,10 @@ fn setup_world_loading(
         };
         let mut prop_instance: Option<InstanceId> = None;
         if prop_handle.is_some() {
-            let parent_entity = commands.spawn_bundle(TransformBundle::from(
+            let parent_entity = commands.spawn_bundle(SpatialBundle::from_transform(
                 Transform::from_translation(data.translation)
             )).with_children(|parent2| {
-                let parent = parent2.spawn_bundle(TransformBundle::from(
+                let parent = parent2.spawn_bundle(SpatialBundle::from_transform(
                     Transform::from_rotation(data.rotation)
                 )).id();
                 if settings.graphics_settings.render_mode.as_str() != "colliders" {
@@ -144,7 +146,7 @@ fn setup_world_loading(
                 };
                 if shape_handle.is_some() {
                     parent2
-                            .spawn_bundle(TransformBundle::from(
+                            .spawn_bundle(SpatialBundle::from_transform(
                                 Transform::from_translation(door_scale[1] * Vec3::Y)))
                             .insert(shape_handle.unwrap())
                             .insert(CollisionGroups::new(0b0001, 0b0001))
@@ -171,7 +173,7 @@ fn setup_world_loading(
         if data.interaction.is_some() {
             let collider = Collider::ball(data.scale[0]);
             let collider_ent_id = commands
-                    .spawn_bundle(TransformBundle::from(
+                    .spawn_bundle(SpatialBundle::from_transform(
                         Transform::from_translation(data.translation)))
                     .insert(collider)
                     .insert(CollisionGroups::new(0b0100, 0b0100))
@@ -228,12 +230,11 @@ fn update_world_loading(
                 }
             }
             if lowest_ent.is_some() {
-                let clips = match waiting_key.as_str() {
-                    "switch01" => vec![
+                let clips = if waiting_key.starts_with("switch") {
+                    vec![
                         asset_server.load("props/big_switch.glb#Animation3"),
-                    ],
-                    _ => Vec::new()
-                };
+                    ]
+                } else { Vec::new() };
                 world_state.animatables.insert(waiting_key.to_string(), AnimatableState { scene_entity: lowest_ent.clone(), clips });
             }
         }

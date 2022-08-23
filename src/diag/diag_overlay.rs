@@ -30,7 +30,6 @@ fn diag_overlay_setup(
     asset_server: Res<AssetServer>
 ) {
     let font = asset_server.load("fonts/FiraSans-Bold.ttf");
-    commands.spawn_bundle(UiCameraBundle::default());
 
     // Text with multiple sections
     commands
