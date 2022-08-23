@@ -39,7 +39,7 @@ fn setup_menu(
         .spawn_bundle(ButtonBundle {
             style: Style {
                 size: Size::new(Val::Px(120.0), Val::Px(50.0)),
-                margin: Rect::all(Val::Auto),
+                margin: UiRect::all(Val::Auto),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 ..Default::default()

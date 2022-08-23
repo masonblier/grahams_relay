@@ -2,6 +2,8 @@ mod animatable_state;
 pub use animatable_state::*;
 mod door_state;
 pub use door_state::*;
+mod interactable_state;
+pub use interactable_state::*;
 mod world_asset_loader;
 pub use world_asset_loader::*;
 mod world_loading;

@@ -1,6 +1,6 @@
 use crate::{game_state::GameState, settings::SettingsAsset, world::WorldAsset};
 use bevy::prelude::*;
-use bevy_asset_loader::{AssetCollection, AssetLoader};
+use bevy_asset_loader::prelude::*;
 use bevy_kira_audio::AudioSource;
 
 pub struct AssetLoadingPlugin;
@@ -10,7 +10,8 @@ pub struct AssetLoadingPlugin;
 /// If interested, take a look at https://bevy-cheatbook.github.io/features/assets.html
 impl Plugin for AssetLoadingPlugin {
     fn build(&self, app: &mut App) {
-        AssetLoader::new(GameState::AssetLoading)
+        app.add_loading_state(
+            LoadingState::new(GameState::AssetLoading)
             .with_collection::<FontAssets>()
             .with_collection::<AudioAssets>()
             .with_collection::<CharacterAssets>()
@@ -18,8 +19,8 @@ impl Plugin for AssetLoadingPlugin {
             .with_collection::<TextureAssets>()
             .with_collection::<WorldAssets>()
             .with_collection::<WorldProps>()
-            .continue_to_state(GameState::Menu)
-            .build(app);
+            .continue_to_state(GameState::Menu),
+        );
     }
 }
 
@@ -82,6 +83,10 @@ pub struct WorldProps {
     pub denki_train: Handle<Scene>,
     #[asset(path = "props/door_blue.glb#Scene0")]
     pub door_blue: Handle<Scene>,
+    #[asset(path = "props/fuse_console.glb#Scene0")]
+    pub fuse_console: Handle<Scene>,
+    #[asset(path = "props/fuse_small.glb#Scene0")]
+    pub fuse_small: Handle<Scene>,
     #[asset(path = "props/office_desk01.glb#Scene0")]
     pub office_desk01: Handle<Scene>,
     #[asset(path = "props/house_roof01.glb#Scene0")]

@@ -1,5 +1,4 @@
 use crate::game_state::GameState;
-use crate::inputs::MouseCamera;
 use crate::loading::{CharacterAssets};
 use crate::movement::{CharacterState,Mover,MoverParent};
 use crate::settings::SettingsAsset;
@@ -42,7 +41,7 @@ fn setup_character_loading(
     let radius = 0.5;
     let half_height = 0.54;
     commands
-        .spawn_bundle(TransformBundle::from(
+        .spawn_bundle(SpatialBundle::from_transform(
             Transform::from_translation(Vec3::new(-0.5,1.5,0.0))))
         .insert(Mover::default())
         .insert(RigidBody::Dynamic)
@@ -59,7 +58,7 @@ fn setup_character_loading(
         .with_children(|parent| {
             if settings.graphics_settings.render_mode.as_str() == "colliders" {
                 // spawn character container
-                parent.spawn_bundle(TransformBundle::from(
+                parent.spawn_bundle(SpatialBundle::from_transform(
                     Transform::from_translation(-Vec3::Y).with_rotation(Quat::default())
                 ))
                 .insert(MoverParent::default())
@@ -80,7 +79,7 @@ fn setup_character_loading(
                 });
             } else {
                 // spawn character container
-                let character_parent = parent.spawn_bundle(TransformBundle::from(
+                let character_parent = parent.spawn_bundle(SpatialBundle::from_transform(
                     Transform::from_translation(-Vec3::Y).with_rotation(Quat::default())
                 ))
                 .insert(MoverParent::default())
@@ -109,12 +108,6 @@ fn setup_character_animations(
 fn spawn_character_camera(
     mut commands: Commands,
 ) {
-    // Camera
-    commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(-1.0, 1.7, 0.0),
-        ..Default::default()
-    }).insert(MouseCamera::default());
-
     // Light
     commands.spawn_bundle(DirectionalLightBundle {
         transform: Transform::from_rotation(Quat::from_euler(

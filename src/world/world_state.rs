@@ -1,4 +1,4 @@
-use crate::world::{AnimatableStatePlugin,DoorStatePlugin,WorldInteraction};
+use crate::world::{AnimatableStatePlugin,DoorStatePlugin,InteractableStatePlugin,WorldInteraction};
 use bevy::prelude::*;
 use std::collections::HashMap;
 
@@ -10,7 +10,7 @@ pub struct WorldState {
     pub doors: HashMap<String, DoorState>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct InteractableState {
     pub interaction: WorldInteraction,
 }
@@ -34,6 +34,7 @@ impl Plugin for WorldStatePlugin {
         app
         .add_plugin(AnimatableStatePlugin)
         .add_plugin(DoorStatePlugin)
+        .add_plugin(InteractableStatePlugin)
         ;
     }
 }

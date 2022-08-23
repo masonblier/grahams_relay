@@ -40,7 +40,7 @@ fn update_animatable_interaction(
     for animatable_event in animatable_events.iter() {
         for (parent, mut player) in animation_players.iter_mut() {
             if let Some(animatable_state) = world_state.animatables.get_mut(&animatable_event.name) {
-                if animatable_state.scene_entity.is_some() && animatable_state.scene_entity.unwrap() == parent.0 {
+                if animatable_state.scene_entity.is_some() && animatable_state.scene_entity.unwrap() == parent.get() {
                     match animatable_event.action {
                         AnimatableEventAction::PlayOnce => {
                             player.play(animatable_state.clips[0].clone_weak());
