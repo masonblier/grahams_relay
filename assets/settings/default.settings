@@ -1,0 +1,5 @@
+SettingsAsset(
+  graphics_settings: GraphicsSettings(
+    render_mode: "full",
+  )
+)
