@@ -48,7 +48,9 @@ pub struct WorldInteractable {
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct WorldInteraction {
     pub interaction: String,
+    pub interaction_text: String,
     pub actions: Vec<(String, String)>,
+    pub blockers: Vec<(String, String)>,
 }
 
 // represents gltf prop

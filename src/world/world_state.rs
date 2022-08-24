@@ -1,4 +1,5 @@
-use crate::world::{AnimatableStatePlugin,DoorStatePlugin,InteractableStatePlugin,WorldInteraction};
+use crate::world::{AnimatableStatePlugin,DoorStatePlugin,InteractableStatePlugin,
+    InventoryStatePlugin,WorldFlagsStatePlugin,WorldInteraction};
 use bevy::prelude::*;
 use std::collections::HashMap;
 
@@ -35,6 +36,8 @@ impl Plugin for WorldStatePlugin {
         .add_plugin(AnimatableStatePlugin)
         .add_plugin(DoorStatePlugin)
         .add_plugin(InteractableStatePlugin)
+        .add_plugin(InventoryStatePlugin)
+        .add_plugin(WorldFlagsStatePlugin)
         ;
     }
 }

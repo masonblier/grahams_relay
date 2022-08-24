@@ -7,6 +7,7 @@ pub struct AnimatableStatePlugin;
 
 pub enum AnimatableEventAction {
     PlayOnce,
+    Despawn,
 }
 
 pub struct AnimatableEvent {
@@ -28,6 +29,7 @@ impl Plugin for AnimatableStatePlugin {
 
 
 fn update_animatable_interaction(
+    mut commands: Commands,
     cursor_lock_state: Res<CursorLockState>,
     mut world_state: ResMut<WorldState>,
     mut animatable_events: EventReader<AnimatableEvent>,
@@ -38,14 +40,17 @@ fn update_animatable_interaction(
     }
 
     for animatable_event in animatable_events.iter() {
-        for (parent, mut player) in animation_players.iter_mut() {
-            if let Some(animatable_state) = world_state.animatables.get_mut(&animatable_event.name) {
-                if animatable_state.scene_entity.is_some() && animatable_state.scene_entity.unwrap() == parent.get() {
-                    match animatable_event.action {
-                        AnimatableEventAction::PlayOnce => {
+        if let Some(animatable_state) = world_state.animatables.get_mut(&animatable_event.name) {
+            match animatable_event.action {
+                AnimatableEventAction::PlayOnce => {
+                    for (parent, mut player) in animation_players.iter_mut() {
+                        if animatable_state.scene_entity.is_some() && animatable_state.scene_entity.unwrap() == parent.get() {
                             player.play(animatable_state.clips[0].clone_weak());
                         }
                     }
+                }
+                AnimatableEventAction::Despawn => {
+                    commands.entity(animatable_state.scene_entity.unwrap()).despawn_recursive();
                 }
             }
         }

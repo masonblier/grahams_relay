@@ -57,6 +57,8 @@ pub struct SettingsAssets {
 
 #[derive(AssetCollection)]
 pub struct TextureAssets {
+    #[asset(path = "textures/fuse_small_icon.png")]
+    pub fuse_small_icon: Handle<Image>,
     #[asset(path = "textures/bevy.png")]
     pub texture_bevy: Handle<Image>,
 }

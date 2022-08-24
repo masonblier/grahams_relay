@@ -210,7 +210,9 @@ WorldAsset(
       scale: Vec3(0.19999998807907104,0.19999998807907104,0.19999998807907104),
       interaction: Some(WorldInteraction(
         interaction: "click",
+        interaction_text: "Toggle Switch",
         actions: [("animate","switch01.toggle_on"),("audio_playonce","big_switch"),("toggle_door","door01")],
+        blockers: [],
       )),
     ),
     WorldInteractable(
@@ -220,7 +222,9 @@ WorldAsset(
       scale: Vec3(0.19999998807907104,0.19999998807907104,0.19999998807907104),
       interaction: Some(WorldInteraction(
         interaction: "click",
+        interaction_text: "Toggle Switch",
         actions: [("animate","switch02.toggle_on"),("audio_playonce","big_switch")],
+        blockers: [("flag_enabled.power01","Needs Power")],
       )),
     ),
     WorldInteractable(
@@ -230,7 +234,21 @@ WorldAsset(
       scale: Vec3(0.19999998807907104,0.19999998807907104,0.19999998807907104),
       interaction: Some(WorldInteraction(
         interaction: "click",
-        actions: [("insert_fuese","small_fuse")],
+        interaction_text: "Insert Fuse",
+        actions: [("consume_item","fuse_small"),("enable_flag","power01"),("despawn_self","")],
+        blockers: [("holding.fuse_small","Needs Fuse")],
+      )),
+    ),
+    WorldInteractable(
+      shape: "ball",
+      translation: Vec3(2.2276999950408936,0.7973099946975708,-0.3349800109863281),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(0.19999998807907104,0.19999998807907104,0.19999998807907104),
+      interaction: Some(WorldInteraction(
+        interaction: "click",
+        interaction_text: "Pickup Fuse",
+        actions: [("pickup_item","fuse_small"),("hide_prop","fuse_small01"),("despawn_self","")],
+        blockers: [],
       )),
     ),
   ],
