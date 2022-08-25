@@ -2,7 +2,7 @@ use crate::audio::{AudioEvent,AudioEventAction};
 use crate::inputs::{CursorLockState,MouseCamera,MouseLookState};
 use crate::game_state::GameState;
 use crate::loading::{AudioAssets,FontAssets};
-use crate::movement::{MovementState};
+use crate::movement::{MovementState,Mover};
 use crate::world::{AnimatableEvent,AnimatableEventAction,DoorEvent,
     DoorEventAction,InteractableState,InventoryEvent,InventoryEventAction,
     InventoryItem,InventoryState,LightsEvent,LightsEventAction,
@@ -10,6 +10,7 @@ use crate::world::{AnimatableEvent,AnimatableEventAction,DoorEvent,
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+const INITIAL_BLOCKED_DURATION: f32 = 0.4;
 const INTERACTION_BLOCKED_DURATION: f32 = 1.2;
 
 // system state
@@ -37,7 +38,10 @@ impl Plugin for InteractableStatePlugin {
             SystemSet::on_update(GameState::Running)
             .with_system(update_interactable_interaction)
             .with_system(update_mouse_click_interaction)
-        );
+        )
+        .add_system_set(SystemSet::on_exit(GameState::Running)
+            .with_system(exit_interactable_interaction))
+        ;
     }
 }
 
@@ -77,6 +81,9 @@ fn setup_interactable_interaction(
             ;
         })
         .id());
+
+    // delay inputs when first entering Running state
+    interactables_state.blocked_rmn = INITIAL_BLOCKED_DURATION;
 }
 
 fn update_interactable_interaction(
@@ -89,15 +96,17 @@ fn update_interactable_interaction(
     mouse_look: Res<MouseLookState>,
     rapier_context: Res<RapierContext>,
     mut text_query: Query<&mut Text, With<InteractablesOverlayText>>,
+    mover_query: Query<&Mover>,
 ) {
     if !cursor_lock_state.enabled {
         return;
     }
 
     // get interactable ray from player state
+    let mover = mover_query.single();
     let camera_transform = camera_query.single();
     let ray_pos = camera_transform.translation();
-    let ray_len = 1.7;
+    let ray_len = if mover.third_person { 2.5 } else { 1.7 } ;
     let ray_dir = mouse_look.forward * ray_len;
     let ray_groups = InteractionGroups::new(0b0100, 0b0100);
     let ray_filter = QueryFilter { groups: Some(ray_groups), ..Default::default()};
@@ -291,4 +300,13 @@ fn check_blockers(
             false
         }
     }).collect::<Vec<(String,String)>>()
+}
+
+fn exit_interactable_interaction(
+    mut commands: Commands,
+    interactables_state: Res<InteractablesState>,
+) {
+    if let Some(ui_entity) = interactables_state.ui_entity {
+        commands.entity(ui_entity).despawn_recursive();();
+    }
 }

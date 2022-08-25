@@ -12,7 +12,7 @@ use crate::audio::AudioStatePlugin;
 use crate::diag::DiagOverlayPlugin;
 use crate::game_state::GameState;
 use crate::inputs::{KeyInputPlugin, MouseInputPlugin};
-use crate::loading::{AssetLoadingPlugin,PreLoadingPlugin};
+use crate::loading::{AssetLoadingPlugin,LoadingUiStatePlugin,PreLoadingPlugin};
 use crate::menu::MenuPlugin;
 use crate::movement::{CharacterLoadingPlugin,MovementStatePlugin};
 use crate::settings::SettingsPlugin;
@@ -26,6 +26,7 @@ pub struct GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_state(GameState::PreLoading)
+            .add_plugin(LoadingUiStatePlugin)
             .add_plugin(PreLoadingPlugin)
             .add_plugin(AssetLoadingPlugin)
             .add_plugin(CharacterLoadingPlugin)

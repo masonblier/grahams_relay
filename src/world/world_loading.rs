@@ -1,4 +1,4 @@
-use crate::loading::{WorldAssets,WorldProps};
+use crate::loading::{LoadingUiEvent,LoadingUiEventAction,WorldAssets,WorldProps};
 use crate::game_state::GameState;
 use crate::settings::SettingsAsset;
 use crate::world::{DoorState,InteractableState,WorldAsset,WorldState,AnimatableState};
@@ -36,11 +36,15 @@ fn setup_world_loading(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     settings: Res<SettingsAsset>,
+    mut loading_ui_events: EventWriter<LoadingUiEvent>,
 ) {
     let world_asset = world_assets.get(&world_handles.world01).unwrap();
-    info!("World assets loaded:");
-    info!("  colliders: {:?}", world_asset.colliders.len());
-    info!("  props: {:?}", world_asset.props.len());
+
+    // update loading ui text
+    loading_ui_events.send(LoadingUiEvent {
+        action: LoadingUiEventAction::SetText,
+        payload: Some("Spawning".into()),
+    });
 
     // load props
     for data in world_asset.props.iter() {
@@ -122,7 +126,6 @@ fn setup_world_loading(
 
     // doors
     for data in world_asset.doors.iter() {
-        info!("{:?}", data);
         let prop_handle: Option<Handle<Scene>> = match data.prop.as_str() {
             "door_blue" => Some(world_props.door_blue.clone()),
             _ => None
@@ -231,6 +234,7 @@ fn update_world_loading(
     mut state: ResMut<State<GameState>>,
     scene_spawner: Res<SceneSpawner>,
     asset_server: Res<AssetServer>,
+    mut loading_ui_events: EventWriter<LoadingUiEvent>,
 ) {
     if world_loading.done {
         return;
@@ -244,6 +248,13 @@ fn update_world_loading(
     // if no waiting keys, all done
     if waiting_keys.len() == 0 {
         info!("World loaded: {:?}", 1);
+
+        // hide loading ui
+        loading_ui_events.send(LoadingUiEvent {
+            action: LoadingUiEventAction::Hide,
+            payload: None,
+        });
+
         world_loading.done = true;
         state.set(GameState::Running).unwrap();
     } else {

@@ -2,7 +2,7 @@
 
 A puzzle game made with the Bevy game engine.
 
-Tech Demo / Pre-Alpha
+Tech Demo / Pre-Alpha (~80mb)
 
 https://masonblier.github.io/grahams_relay/
 
@@ -18,4 +18,5 @@ Web build
 Licenses
 --
 MIT License
+
 CC0 1.0 Universal

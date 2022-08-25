@@ -46,5 +46,9 @@ image = { version = "0.24", default-features = false }
 anyhow = "1.0.62"
 ron = "0.8.0"
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-sys = "0.3.59"
+wasm-bindgen = "0.2.82"
+
 [build-dependencies]
 embed-resource = "1.4"

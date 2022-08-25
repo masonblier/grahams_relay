@@ -1,11 +1,11 @@
 use crate::game_state::GameState;
-use crate::inputs::{CursorLockState,KeyInputState,MouseCamera,MouseLookState};
+use crate::inputs::{KeyInputState,MouseCamera,MouseLookState};
 use crate::movement::{CharacterState,CharacterAnimations};
 use crate::settings::SettingsAsset;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-const MOVE_SPEED: f32 = 10.0;
+const MOVE_SPEED: f32 = 30.0;
 const CAMERA_FLY_MOVE_SPEED: f32 = 10.0;
 
 const FORWARD_ANIMATION_IDX: usize = 0;
@@ -102,7 +102,6 @@ fn update_camera(
 
             let next_position = camera.translation + camera_move;
             camera.translation = next_position.clone();
-            println!("mover position {:?}", next_position);
             camera.look_at(next_position + mouse_look.forward, Vec3::Y);
         } else {
             if mover.third_person {
@@ -122,7 +121,6 @@ fn update_camera(
 fn update_character_state(
     animations: Res<CharacterAnimations>,
     mut mover_parent_query: Query<&mut Transform, With<MoverParent>>,
-    cursor_lock_state: Res<CursorLockState>,
     time: Res<Time>,
     key_state: Res<KeyInputState>,
     character_state: Res<CharacterState>,
@@ -131,7 +129,7 @@ fn update_character_state(
     mut animation_players: Query<(&Parent, &mut AnimationPlayer)>,
     settings: Res<SettingsAsset>,
 ) {
-    if !cursor_lock_state.enabled || movement_state.noclip {
+    if movement_state.noclip {
         return;
     }
 

@@ -1,12 +1,12 @@
 use crate::game_state::GameState;
 use crate::inputs::MouseCamera;
+use crate::loading::{LoadingUiState};
 use bevy::prelude::*;
 
 pub struct PreLoadingPlugin;
 
 #[derive(Default)]
 pub struct PreLoadingState {
-    pub font_handle: Handle<Font>,
     pub pre_loaded: bool,
     pub ui_entity: Option<Entity>,
 }
@@ -18,8 +18,7 @@ impl Plugin for PreLoadingPlugin {
         app
             .init_resource::<PreLoadingState>()
             .add_system_set(SystemSet::on_enter(GameState::PreLoading)
-                .with_system(setup_camera)
-                .with_system(setup_pre_loading))
+                .with_system(setup_camera))
             .add_system_set(SystemSet::on_update(GameState::PreLoading).with_system(update_pre_loading));
     }
 }
@@ -39,35 +38,13 @@ fn setup_camera(
     .insert(MouseCamera::default());
 }
 
-fn setup_pre_loading(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut pre_loading: ResMut<PreLoadingState>,
-) {
-    pre_loading.font_handle = asset_server.load("fonts/FiraSans-Bold.ttf");
-    pre_loading.ui_entity = Some(commands
-        .spawn_bundle(TextBundle {
-            text: Text {
-                sections: vec![TextSection {
-                    value: "Loading".to_string(),
-                    style: TextStyle {
-                        font: pre_loading.font_handle.clone(),
-                        font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
-                    },
-                }],
-                alignment: Default::default(),
-            },
-            ..Default::default()
-        }).id());
-}
-
 fn update_pre_loading(
     font_assets: Res<Assets<Font>>,
     mut pre_loading: ResMut<PreLoadingState>,
     mut state: ResMut<State<GameState>>,
+    loading_ui_state: Res<LoadingUiState>,
 ) {
-    let font_asset = font_assets.get(&pre_loading.font_handle);
+    let font_asset = font_assets.get(&loading_ui_state.font_handle);
     if pre_loading.pre_loaded || font_asset.is_none() {
         return;
     }

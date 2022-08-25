@@ -12,6 +12,8 @@ pub enum GameState {
     Menu,
     // During this State the actual game logic is executed
     Running,
+    // Game paused, can resume
+    Paused,
     // Character loading and init
     CharacterLoading,
     // World loading states, level specific assets

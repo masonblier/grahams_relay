@@ -41,7 +41,10 @@ impl Plugin for InventoryStatePlugin {
         .add_system_set(
             SystemSet::on_update(GameState::Running)
             .with_system(update_inventory_interaction)
-        );
+        )
+        .add_system_set(SystemSet::on_exit(GameState::Running)
+            .with_system(exit_inventory_interaction))
+        ;
     }
 }
 
@@ -126,5 +129,14 @@ fn update_inventory_interaction(
         let mut vis = node_query.single_mut();
         vis.is_visible = inventory_state.fuse_small_count > 0;
         vis.set_changed();
+    }
+}
+
+fn exit_inventory_interaction(
+    mut commands: Commands,
+    node_query: Query<Entity, With<InventoryFuseSmallNode>>,
+) {
+    for ent in node_query.iter() {
+        commands.entity(ent).despawn_recursive();();
     }
 }

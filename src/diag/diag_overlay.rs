@@ -21,6 +21,10 @@ impl Plugin for DiagOverlayPlugin {
         .add_system_set(
             SystemSet::on_update(GameState::Running)
             .with_system(diag_overlay_update)
+        )
+        .add_system_set(
+            SystemSet::on_exit(GameState::Running)
+            .with_system(diag_overlay_exit)
         );
     }
 }
@@ -91,5 +95,14 @@ fn diag_overlay_update(diagnostics: Res<Diagnostics>,
                 text.sections[2].value = format!("{}", if movement_state.noclip { " noclip" } else { "" });
             }
         }
+    }
+}
+
+fn diag_overlay_exit(
+    mut commands: Commands,
+    query: Query<Entity, With<DiagOverlayText>>,
+) {
+    for ent in query.iter() {
+        commands.entity(ent).despawn();
     }
 }

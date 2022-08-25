@@ -1,4 +1,6 @@
 use bevy::{prelude::*, input::mouse::{MouseMotion,MouseWheel}};
+#[cfg(target_arch = "wasm32")]
+use web_sys;
 use crate::game_state::GameState;
 
 pub struct MouseSettings {
@@ -23,13 +25,24 @@ pub struct CursorLockState {
 }
 
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy)]
 pub struct MouseLookState {
     pub yaw_pitch_roll: Vec3,
     pub forward: Vec3,
     pub right: Vec3,
     pub up: Vec3,
     pub zoom: f32,
+}
+impl Default for MouseLookState {
+    fn default() -> Self {
+        Self {
+            yaw_pitch_roll: Vec3::ZERO,
+            forward: -Vec3::Z,
+            right: Vec3::X,
+            up: Vec3::Y,
+            zoom: 0.,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Component, Default)]
@@ -45,25 +58,78 @@ impl Plugin for MouseInputPlugin {
         app.init_resource::<MouseLookState>();
         app.init_resource::<MouseSettings>();
         app.add_system_set(
+            SystemSet::on_enter(GameState::Running)
+            .with_system(setup_mouse_inputs))
+        .add_system_set(
             SystemSet::on_update(GameState::Running)
             .with_system(update_cursor_lock)
+            .with_system(update_cursor_lock_wasm_running)
             .with_system(input_to_look)
-        );
+        )
+        .add_system_set(
+            SystemSet::on_update(GameState::Paused)
+            .with_system(update_cursor_lock_wasm_paused))
+        ;
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+pub fn update_cursor_lock_wasm_running(
+    mut cursor_lock_controls: ResMut<CursorLockState>,
+    mut state: ResMut<State<GameState>>,
+    mut windows: ResMut<Windows>,
+) {
+    let browser_window = web_sys::window().expect("could not get window handle");
+    let document = browser_window.document().expect("could not get document handle");
+    // check for silent cursor lock exit (browser)
+    if cursor_lock_controls.enabled && !document.pointer_lock_element().is_some() {
+        let window = windows.get_primary_mut().unwrap();
+        window.set_cursor_lock_mode(false);
+        window.set_cursor_visibility(true);
+        cursor_lock_controls.enabled = false;
+        state.set(GameState::Paused).unwrap();
+    }
+}
+#[cfg(target_arch = "wasm32")]
+pub fn update_cursor_lock_wasm_paused(
+    mut cursor_lock_controls: ResMut<CursorLockState>,
+    mut state: ResMut<State<GameState>>,
+    mut windows: ResMut<Windows>,
+) {
+    let browser_window = web_sys::window().expect("could not get window handle");
+    let document = browser_window.document().expect("could not get document handle");
+    // check for cursor lock grab during paused, implying resume clicked
+    if document.pointer_lock_element().is_some() {
+        let window = windows.get_primary_mut().unwrap();
+        window.set_cursor_lock_mode(true);
+        window.set_cursor_visibility(false);
+        cursor_lock_controls.enabled = true;
+        state.set(GameState::Running).unwrap();
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn update_cursor_lock_wasm_running() { }
+#[cfg(not(target_arch = "wasm32"))]
+pub fn update_cursor_lock_wasm_paused() { }
+
+fn setup_mouse_inputs(
+    mut mouse_motion_events: EventReader<MouseMotion>,
+    mut mouse_wheel_events: EventReader<MouseWheel>,
+) {
+    // clear input queues
+    for _ in mouse_motion_events.iter() { }
+    for _ in mouse_wheel_events.iter() { }
+}
+
 pub fn update_cursor_lock(
-    key_input: Res<Input<KeyCode>>,
     mouse_btn_input: Res<Input<MouseButton>>,
     mut cursor_lock_controls: ResMut<CursorLockState>,
     mut windows: ResMut<Windows>,
 ) {
     let window = windows.get_primary_mut().unwrap();
-    if key_input.just_pressed(KeyCode::Escape) {
-        window.set_cursor_lock_mode(false);
-        window.set_cursor_visibility(true);
-        cursor_lock_controls.enabled = false;
-    } else if mouse_btn_input.pressed(MouseButton::Left) {
+    // check for click to enter cursor lock
+    if mouse_btn_input.pressed(MouseButton::Left) {
         window.set_cursor_lock_mode(true);
         window.set_cursor_visibility(false);
         cursor_lock_controls.enabled = true;

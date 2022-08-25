@@ -53,7 +53,7 @@ fn setup_character_loading(
             impulse: Vec3::ZERO,
             torque_impulse: Vec3::ZERO,
         })
-        .insert(Damping { linear_damping: 0.5, angular_damping: 0.0 })
+        .insert(Damping { linear_damping: 10.0, angular_damping: 1.0 })
         .with_children(|parent| {
             if settings.graphics_settings.render_mode.as_str() == "colliders" {
                 // spawn character container

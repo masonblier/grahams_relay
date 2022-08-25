@@ -14,6 +14,7 @@ pub struct KeyInputMap {
     pub key_crouch: KeyCode,
     pub key_fly: KeyCode,
     pub key_toggleview: KeyCode,
+    pub key_escape: KeyCode,
 }
 
 impl Default for KeyInputMap {
@@ -28,6 +29,7 @@ impl Default for KeyInputMap {
             key_crouch: KeyCode::LControl,
             key_fly: KeyCode::F,
             key_toggleview: KeyCode::T,
+            key_escape: KeyCode::Escape,
         }
     }
 }
@@ -68,7 +70,13 @@ pub fn input_to_move(
     input_map: Res<KeyInputMap>,
     mut state: ResMut<KeyInputState>,
     cursor_lock: Res<CursorLockState>,
+    mut game_state: ResMut<State<GameState>>,
 ) {
+    // check esc
+    if cursor_lock.enabled && keyboard_input.just_pressed(input_map.key_escape) {
+        game_state.set(GameState::Paused).unwrap();
+    }
+
     // update input state from key states
     state.run = cursor_lock.enabled && keyboard_input.pressed(input_map.key_run);
     state.toggle_fly = cursor_lock.enabled && keyboard_input.just_pressed(input_map.key_fly);
