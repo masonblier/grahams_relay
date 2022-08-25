@@ -23,8 +23,7 @@ impl Plugin for CharacterLoadingPlugin {
             .init_resource::<CharacterState>()
             .add_system_set(SystemSet::on_enter(GameState::CharacterLoading)
                 .with_system(setup_character_loading)
-                .with_system(setup_character_animations)
-                .with_system(spawn_character_camera))
+                .with_system(setup_character_animations))
             .add_system_set(SystemSet::on_update(GameState::CharacterLoading).with_system(update_character_loading));
     }
 }
@@ -103,25 +102,6 @@ fn setup_character_animations(
         asset_server.load("characters/graham_4action_v2.glb#Animation1"),
         asset_server.load("characters/graham_4action_v2.glb#Animation0"),
     ]));
-}
-
-fn spawn_character_camera(
-    mut commands: Commands,
-) {
-    // Light
-    commands.spawn_bundle(DirectionalLightBundle {
-        transform: Transform::from_rotation(Quat::from_euler(
-            EulerRot::ZYX,
-            0.0,
-            1.0,
-            -std::f32::consts::FRAC_PI_4,
-        )),
-        directional_light: DirectionalLight {
-            shadows_enabled: true,
-            ..default()
-        },
-        ..default()
-    });
 }
 
 fn update_character_loading(

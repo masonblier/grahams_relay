@@ -13,6 +13,7 @@ pub struct WorldAsset {
     pub colliders: Vec<WorldCollider>,
     pub doors: Vec<WorldDoor>,
     pub interactables: Vec<WorldInteractable>,
+    pub lights: Vec<WorldLight>,
     pub props: Vec<WorldProp>,
 }
 
@@ -60,6 +61,17 @@ pub struct WorldProp {
     pub translation: Vec3,
     pub rotation: Quat,
     pub scale: Vec3,
+    pub animatable: Option<String>,
+}
+
+// represents light
+#[derive(Debug, Deserialize)]
+pub struct WorldLight {
+    pub light_type: String,
+    pub translation: Vec3,
+    pub rotation: Quat,
+    pub scale: Vec3,
+    pub watts: f32,
     pub animatable: Option<String>,
 }
 

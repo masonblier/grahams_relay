@@ -5,8 +5,8 @@ use crate::loading::{AudioAssets,FontAssets};
 use crate::movement::{MovementState};
 use crate::world::{AnimatableEvent,AnimatableEventAction,DoorEvent,
     DoorEventAction,InteractableState,InventoryEvent,InventoryEventAction,
-    InventoryItem,InventoryState,WorldFlagsEvent,WorldFlagsEventAction,
-    WorldFlagsState,WorldState};
+    InventoryItem,InventoryState,LightsEvent,LightsEventAction,
+    WorldFlagsEvent,WorldFlagsEventAction,WorldFlagsState,WorldState};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -149,6 +149,7 @@ fn update_mouse_click_interaction(
     mut animatable_events: EventWriter<AnimatableEvent>,
     mut door_events: EventWriter<DoorEvent>,
     mut inventory_events: EventWriter<InventoryEvent>,
+    mut lights_events: EventWriter<LightsEvent>,
     mut world_flags_events: EventWriter<WorldFlagsEvent>,
     mut audio_events: EventWriter<AudioEvent>,
     audio_assets: Res<AudioAssets>,
@@ -199,6 +200,12 @@ fn update_mouse_click_interaction(
                         door_events.send(DoorEvent {
                             action: DoorEventAction::Toggle,
                             door: action.1.to_string(),
+                        });
+                    },
+                    "toggle_light" => {
+                        lights_events.send(LightsEvent {
+                            action: LightsEventAction::Toggle,
+                            name: action.1.to_string(),
                         });
                     },
                     "consume_item" => {

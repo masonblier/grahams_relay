@@ -29,11 +29,9 @@ def build_ron():
     doorstr = ""
     interactablestr = ""
     propstr = ""
+    lightstr = ""
 
     for obj in bpy.data.objects:
-#        if obj.type != "MESH":
-#            continue
-
         name = bpy.path.clean_name(obj.name)
 
         if obj.name.startswith("Collider"):
@@ -73,12 +71,18 @@ def build_ron():
             interaction = "None"
             if "interaction" in obj:
                 interaction_type = "\""+obj["interaction"]+"\""
+                interaction_text = "\""+obj["interaction_text"]+"\""
                 interaction_actions = ""
                 if "interaction_actions" in obj:
                     interaction_actions = ""+obj["interaction_actions"]+""
+                interaction_blockers = ""
+                if "interaction_blockers" in obj:
+                    interaction_blockers = ""+obj["interaction_blockers"]+""
                 interaction = "Some(WorldInteraction(\n"
                 interaction += "        interaction: "+interaction_type+",\n"
+                interaction += "        interaction_text: "+interaction_text+",\n"
                 interaction += "        actions: ["+interaction_actions+"],\n"
+                interaction += "        blockers: ["+interaction_blockers+"],\n"
                 interaction += "      ))"
             interactablestr +=("    WorldInteractable(\n")
             interactablestr +=("      shape: \"" + str(ctype) + "\",\n")
@@ -108,6 +112,30 @@ def build_ron():
             propstr +=("    ),\n")
 
 
+        if obj.name.startswith("Point") or obj.name.startswith("Spot"):
+            matrix_world = obj.matrix_world
+            t = matrix_world.to_translation()
+            r = matrix_world.to_quaternion()
+            s = matrix_world.to_scale()
+            animatable = "None"
+            if "animatable" in obj:
+                animatable_name = "\""+obj["animatable"]+"\""
+                animatable = "Some("+animatable_name+")"
+            watts = str(obj.data.energy)
+            ltype = "point"
+            if obj.data.type == "SPOT":
+                ltype = "directional"
+
+            lightstr +=("    WorldLight(\n")
+            lightstr +=("      light_type: \""+ltype+"\",\n")
+            lightstr +=("      translation: Vec3(" + str(t[0])+","+str(t[2])+","+str(-t[1]) + "),\n")
+            lightstr +=("      rotation: Quat("+str(r[1])+","+str(r[3])+","+str(-r[2])+","+str(r[0])+","+"),\n")
+            lightstr +=("      scale: Vec3(" + str(abs(s[0]))+","+str(abs(s[1]))+","+str(abs(s[2])) + "),\n")
+            lightstr +=("      watts: "+watts+",\n")
+            lightstr +=("      animatable: "+animatable+",\n")
+            lightstr +=("    ),\n")
+
+
     ronstr = "WorldAsset(\n"
     ronstr += "  colliders: [\n"
     ronstr += colliderstr
@@ -120,6 +148,9 @@ def build_ron():
     ronstr += "  ],\n"
     ronstr += "  props: [\n"
     ronstr += propstr
+    ronstr += "  ],\n"
+    ronstr += "  lights: [\n"
+    ronstr += lightstr
     ronstr += "  ],\n"
     ronstr += ")\n"
 

@@ -195,6 +195,34 @@ fn setup_world_loading(
         }
     }
 
+    // load lights
+    for data in world_asset.lights.iter() {
+        let light_entity = if data.light_type == "spot" {
+            commands.spawn_bundle(DirectionalLightBundle {
+                transform: Transform::from_translation(data.translation),
+                directional_light: DirectionalLight {
+                    illuminance: data.watts,
+                    shadows_enabled: true,
+                    ..default()
+                },
+                ..default()
+            }).id()
+        } else {
+            commands.spawn_bundle(PointLightBundle {
+                transform: Transform::from_translation(data.translation),
+                point_light: PointLight {
+                    intensity: data.watts,
+                    shadows_enabled: true,
+                    ..default()
+                },
+                ..default()
+            }).id()
+        };
+        if data.animatable.is_some() {
+            world_state.animatable_lights.insert(data.animatable.clone().unwrap(), light_entity);
+        }
+    }
+
 }
 
 fn update_world_loading(
