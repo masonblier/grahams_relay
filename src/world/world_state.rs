@@ -1,5 +1,6 @@
 use crate::world::{AnimatableStatePlugin,DoorStatePlugin,InteractableStatePlugin,
-    InventoryStatePlugin,LightsStatePlugin,WorldFlagsStatePlugin,WorldInteraction};
+    InventoryStatePlugin,LightsStatePlugin,SoundsStatePlugin,
+    WorldFlagsStatePlugin,WorldInteraction};
 use bevy::prelude::*;
 use std::collections::HashMap;
 
@@ -9,6 +10,7 @@ pub struct WorldState {
     pub interactable_states: HashMap<Entity, InteractableState>,
     pub animatables: HashMap<String, AnimatableState>,
     pub animatable_lights: HashMap<String, Entity>,
+    pub animatable_sounds: HashMap<String, WorldSoundState>,
     pub doors: HashMap<String, DoorState>,
 }
 
@@ -21,6 +23,14 @@ pub struct InteractableState {
 pub struct AnimatableState {
     pub scene_entity: Option<Entity>,
     pub clips: Vec<Handle<AnimationClip>>,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct WorldSoundState {
+    pub sound: String,
+    pub position: Vec3,
+    pub panning: f32,
+    pub paused: bool,
 }
 
 #[derive(Debug, Default)]
@@ -39,6 +49,7 @@ impl Plugin for WorldStatePlugin {
         .add_plugin(InteractableStatePlugin)
         .add_plugin(InventoryStatePlugin)
         .add_plugin(LightsStatePlugin)
+        .add_plugin(SoundsStatePlugin)
         .add_plugin(WorldFlagsStatePlugin)
         ;
     }

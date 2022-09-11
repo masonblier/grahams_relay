@@ -1,7 +1,8 @@
 use crate::loading::{LoadingUiEvent,LoadingUiEventAction,WorldAssets,WorldProps};
 use crate::game_state::GameState;
 use crate::settings::SettingsAsset;
-use crate::world::{DoorState,InteractableState,WorldAsset,WorldState,AnimatableState};
+use crate::world::{DoorState,InteractableState,WorldAsset,WorldState,
+    WorldSoundState,AnimatableState};
 use bevy::prelude::*;
 use bevy::scene::InstanceId;
 use bevy_rapier3d::prelude::*;
@@ -223,6 +224,19 @@ fn setup_world_loading(
         };
         if data.animatable.is_some() {
             world_state.animatable_lights.insert(data.animatable.clone().unwrap(), light_entity);
+        }
+    }
+
+
+    // load sounds
+    for data in world_asset.sounds.iter() {
+        if data.animatable.is_some() {
+            world_state.animatable_sounds.insert(data.animatable.clone().unwrap(), WorldSoundState {
+                sound: data.sound.clone(),
+                position: data.translation,
+                panning: 0.5,
+                paused: data.paused,
+            });
         }
     }
 

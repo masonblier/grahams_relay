@@ -30,6 +30,7 @@ def build_ron():
     interactablestr = ""
     propstr = ""
     lightstr = ""
+    soundstr = ""
 
     for obj in bpy.data.objects:
         name = bpy.path.clean_name(obj.name)
@@ -135,6 +136,24 @@ def build_ron():
             lightstr +=("      animatable: "+animatable+",\n")
             lightstr +=("    ),\n")
 
+        if obj.name.startswith("Sound"):
+            stype = obj.name.split(".")[1]
+            matrix_world = obj.matrix_world
+            t = matrix_world.to_translation()
+            r = matrix_world.to_quaternion()
+            s = matrix_world.to_scale()
+            animatable = "None"
+            if "animatable" in obj:
+                animatable_name = "\""+obj["animatable"]+"\""
+                animatable = "Some("+animatable_name+")"
+
+            soundstr +=("    WorldSound(\n")
+            soundstr +=("      sound: \""+stype+"\",\n")
+            soundstr +=("      translation: Vec3(" + str(t[0])+","+str(t[2])+","+str(-t[1]) + "),\n")
+            soundstr +=("      paused: true,\n")
+            soundstr +=("      animatable: "+animatable+",\n")
+            soundstr +=("    ),\n")
+
 
     ronstr = "WorldAsset(\n"
     ronstr += "  colliders: [\n"
@@ -151,6 +170,9 @@ def build_ron():
     ronstr += "  ],\n"
     ronstr += "  lights: [\n"
     ronstr += lightstr
+    ronstr += "  ],\n"
+    ronstr += "  sounds: [\n"
+    ronstr += soundstr
     ronstr += "  ],\n"
     ronstr += ")\n"
 

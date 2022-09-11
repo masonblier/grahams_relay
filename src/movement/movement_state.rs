@@ -21,9 +21,19 @@ pub struct MovementState {
 }
 
 // marks the rigid body of the player character
-#[derive(Clone,Component,Copy,Default)]
+#[derive(Clone,Component,Copy)]
 pub struct Mover {
     pub third_person: bool,
+    pub last_wish_move: Vec3,
+}
+
+impl Default for Mover {
+    fn default() -> Self {
+        Self {
+            third_person: true,
+            last_wish_move: Vec3::ZERO,
+        }
+    }
 }
 
 // marks the parent element of character gltf scene
@@ -75,6 +85,8 @@ fn update_movement(
         if key_state.left { -mouse_right } else { Vec3::ZERO }
     );
 
+    // store last move
+    mover.last_wish_move = wish_move;
     // apply move
     mover_impulse.impulse = wish_move;
 }
@@ -121,11 +133,11 @@ fn update_camera(
 fn update_character_state(
     animations: Res<CharacterAnimations>,
     mut mover_parent_query: Query<&mut Transform, With<MoverParent>>,
+    mover_query: Query<&Mover>,
     time: Res<Time>,
     key_state: Res<KeyInputState>,
     character_state: Res<CharacterState>,
     mut movement_state: ResMut<MovementState>,
-    mouse_look: Res<MouseLookState>,
     mut animation_players: Query<(&Parent, &mut AnimationPlayer)>,
     settings: Res<SettingsAsset>,
 ) {
@@ -134,10 +146,18 @@ fn update_character_state(
     }
 
     // rotate character with camera
+    let mover = mover_query.single();
+
     let mut mover_parent_transform = mover_parent_query.single_mut();
     let mover_parent_translation = mover_parent_transform.translation.clone();
-    let mouse_forward = (mouse_look.forward * Vec3::new(1.0, 0.0, 1.0)).normalize();
-    mover_parent_transform.look_at(mover_parent_translation - mouse_forward, Vec3::Y);
+    let move_forward = mover.last_wish_move.normalize();
+    if move_forward.length_squared() > 0.0001 {
+        let old_rotation = mover_parent_transform.rotation.clone();
+        mover_parent_transform.look_at(mover_parent_translation - move_forward, Vec3::Y);
+        if old_rotation.angle_between(mover_parent_transform.rotation) > 0.001 {
+            mover_parent_transform.rotation = old_rotation.slerp(mover_parent_transform.rotation, 0.1);
+        }
+    }
 
     // skip gltf in colliders mode
     if settings.graphics_settings.render_mode.as_str() == "colliders" {
@@ -156,7 +176,7 @@ fn update_character_state(
                     movement_state.playing_animation = Some(TOGGLE_SWITCH_ANIMATION_IDX);
                     player.play(animations.0[TOGGLE_SWITCH_ANIMATION_IDX].clone_weak()).repeat();
                 }
-            } else if key_state.forward {
+            } else if move_forward.length_squared() > 0.0001 {
                 if !(movement_state.playing_animation.is_some() && movement_state.playing_animation.unwrap() == FORWARD_ANIMATION_IDX) {
                     movement_state.playing_animation = Some(FORWARD_ANIMATION_IDX);
                     player.play(animations.0[FORWARD_ANIMATION_IDX].clone_weak()).repeat();
