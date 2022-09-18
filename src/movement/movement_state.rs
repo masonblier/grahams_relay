@@ -2,6 +2,7 @@ use crate::game_state::GameState;
 use crate::inputs::{KeyInputState,MouseCamera,MouseLookState};
 use crate::movement::{CharacterState,CharacterAnimations};
 use crate::settings::SettingsAsset;
+use crate::world::WorldState;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -135,13 +136,16 @@ fn update_character_state(
     mut mover_parent_query: Query<&mut Transform, With<MoverParent>>,
     mover_query: Query<&Mover>,
     time: Res<Time>,
-    key_state: Res<KeyInputState>,
     character_state: Res<CharacterState>,
     mut movement_state: ResMut<MovementState>,
     mut animation_players: Query<(&Parent, &mut AnimationPlayer)>,
     settings: Res<SettingsAsset>,
+    world_state: Res<WorldState>,
 ) {
     if movement_state.noclip {
+        return;
+    }
+    if world_state.active_train.is_some() {
         return;
     }
 

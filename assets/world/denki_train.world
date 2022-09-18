@@ -1,0 +1,79 @@
+WorldAsset(
+  colliders: [
+    WorldCollider(
+      shape: "cuboid",
+      translation: Vec3(-1.1999998092651367,1.5,0.10000038146972656),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(0.0452391542494297,1.5299999713897705,2.5990099906921387),
+    ),
+    WorldCollider(
+      shape: "cuboid",
+      translation: Vec3(1.0,1.5,-1.6999998092651367),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(0.0452391542494297,1.5299999713897705,0.8316831588745117),
+    ),
+    WorldCollider(
+      shape: "cuboid",
+      translation: Vec3(1.0,1.5,1.9000005722045898),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(0.0452391542494297,1.5299999713897705,0.8316831588745117),
+    ),
+    WorldCollider(
+      shape: "cuboid",
+      translation: Vec3(-0.09999990463256836,1.2879400253295898,2.700542449951172),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(1.0825262069702148,1.5299999713897705,0.053063128143548965),
+    ),
+    WorldCollider(
+      shape: "cuboid",
+      translation: Vec3(-0.09999990463256836,1.2879400253295898,-1.79945707321167),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(1.0825262069702148,1.5299999713897705,0.053063128143548965),
+    ),
+    WorldCollider(
+      shape: "cuboid",
+      translation: Vec3(-0.09000015258789062,-0.16952228546142578,0.15000057220458984),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(1.0436524152755737,0.09350000321865082,2.697103977203369),
+    ),
+  ],
+  doors: [
+  ],
+  interactables: [
+    WorldInteractable(
+      shape: "ball",
+      translation: Vec3(0.0,0.9744045734405518,-1.9938018321990967),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(0.6839999556541443,0.6839999556541443,0.6839999556541443),
+      interaction: Some(WorldInteraction(
+        interaction: "click",
+        interaction_text: "Start Train",
+        actions: [("train_control","denki_train")],
+        blockers: [("flag_enabled.power01","Needs Power")],
+      )),
+    ),
+  ],
+  props: [
+    WorldProp(
+      prop: "denki_train",
+      translation: Vec3(-0.10000038146972656,0.9000000953674316,0.19999980926513672),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(1.0,1.0,1.0),
+      animatable: None,
+    ),
+  ],
+  lights: [
+    WorldLight(
+      light_type: "directional",
+      translation: Vec3(0.0,1.5,-0.09999942779541016),
+      rotation: Quat(0.5050383806228638,-7.667093754580437e-24,-1.1214104769738137e-16,0.8630968928337097,),
+      scale: Vec3(1.0,0.9999999403953552,0.9999999403953552),
+      watts: 0.0,
+      animatable: Some("trainlight01"),
+    ),
+  ],
+  sounds: [
+  ],
+  trains: [
+  ],
+)

@@ -2,7 +2,7 @@ use crate::loading::{LoadingUiEvent,LoadingUiEventAction,WorldAssets,WorldProps}
 use crate::game_state::GameState;
 use crate::settings::SettingsAsset;
 use crate::world::{DoorState,InteractableState,WorldAsset,WorldState,
-    WorldSoundState,AnimatableState};
+    WorldSoundState,WorldTrainState,AnimatableState};
 use bevy::prelude::*;
 use bevy::scene::InstanceId;
 use bevy_rapier3d::prelude::*;
@@ -51,12 +51,14 @@ fn setup_world_loading(
     for data in world_asset.props.iter() {
         let prop_handle: Option<Handle<Scene>> = match data.prop.as_str() {
             "big_switch" => Some(world_props.big_switch.clone()),
+            "bottle_lightfuel" => Some(world_props.bottle_lightfuel.clone()),
             "cardboard_closed" => Some(world_props.cardboard_closed.clone()),
             "cardboard_opened" => Some(world_props.cardboard_opened.clone()),
             "cardboard_tube" => Some(world_props.cardboard_tube.clone()),
             "city_fence" => Some(world_props.city_fence.clone()),
-            "denki_train" => Some(world_props.denki_train.clone()),
+            "diesel_generator" => Some(world_props.diesel_generator.clone()),
             "door_blue" => Some(world_props.door_blue.clone()),
+            "fountain_round" => Some(world_props.fountain_round.clone()),
             "fuse_console" => Some(world_props.fuse_console.clone()),
             "fuse_small" => Some(world_props.fuse_small.clone()),
             "house_roof01" => Some(world_props.house_roof01.clone()),
@@ -66,8 +68,10 @@ fn setup_world_loading(
             "office_chair" => Some(world_props.office_chair.clone()),
             "pallet" => Some(world_props.pallet.clone()),
             "rail_track" => Some(world_props.rail_track.clone()),
+            "train_wire" => Some(world_props.train_wire.clone()),
             "tunnel_entrance" => Some(world_props.tunnel_entrance.clone()),
             "world01_building01" => Some(world_props.world01_building01.clone()),
+            "world01_generator_wire" => Some(world_props.world01_generator_wire.clone()),
             "world01_ground01" => Some(world_props.world01_ground01.clone()),
             "world01_ground02" => Some(world_props.world01_ground02.clone()),
             "world01_ground03" => Some(world_props.world01_ground03.clone()),
@@ -240,6 +244,128 @@ fn setup_world_loading(
         }
     }
 
+    // trains
+    // "denki_train" => Some(world_props.denki_train.clone()),
+    for data in world_asset.trains.iter() {
+        let train_handle = Some(commands
+            .spawn_bundle(SpatialBundle::from_transform(
+                Transform::from_translation(data.translation)))
+                .with_children(|parent| {
+                    let world_handle: Option<Handle<WorldAsset>> = match data.prop.as_str() {
+                        "denki_train" => Some(world_handles.denki_train.clone()),
+                        _ => None
+                    };
+                    let train_asset = world_assets.get(&world_handle.unwrap()).unwrap();
+                    // colliders
+                    for data in train_asset.colliders.iter() {
+                        let shape_handle: Option<Collider> = match data.shape.as_str() {
+                            "cuboid" => Some(Collider::cuboid(data.scale[0],data.scale[1],data.scale[2])),
+                            _ => None
+                        };
+                        if shape_handle.is_some() {
+                            parent
+                                    .spawn_bundle(SpatialBundle::from_transform(
+                                        Transform::from_translation(data.translation)))
+                                    .insert(shape_handle.unwrap())
+                                    .insert(CollisionGroups::new(0b0001, 0b0001))
+
+                                    .with_children(|parent| {
+                                        if settings.graphics_settings.render_mode.as_str() == "colliders" {
+                                            parent.spawn_bundle(PbrBundle {
+                                                mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+                                                material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+                                                transform: Transform::from_scale(data.scale*2.0),
+                                                ..default()
+                                            });
+                                        }
+                                    })
+                                    ;
+
+                        }
+                    }
+                    // gltf props
+                    for data in train_asset.props.iter() {
+                        let mut prop_instance: Option<InstanceId> = None;
+                        let prop_handle: Option<Handle<Scene>> = match data.prop.as_str() {
+                            "denki_train" => Some(world_props.denki_train.clone()),
+                            _ => None
+                        };
+                        if prop_handle.is_some() {
+                            parent.spawn_bundle(SpatialBundle::from_transform(
+                                Transform::from_translation(data.translation)
+                            )).with_children(|parent2| {
+                                let parent = parent2.spawn_bundle(SpatialBundle::from_transform(
+                                    Transform::from_rotation(data.rotation)
+                                )).id();
+                                if settings.graphics_settings.render_mode.as_str() != "colliders" {
+                                    prop_instance = Some(scene_spawner.spawn_as_child(prop_handle.unwrap(), parent));
+                                }
+                            });
+                        }
+                    }
+                    // lights
+                    for data in train_asset.lights.iter() {
+                        let light_entity = if data.light_type == "spot" {
+                            parent.spawn_bundle(DirectionalLightBundle {
+                                transform: Transform::from_translation(data.translation),
+                                directional_light: DirectionalLight {
+                                    illuminance: data.watts,
+                                    shadows_enabled: true,
+                                    ..default()
+                                },
+                                ..default()
+                            }).id()
+                        } else {
+                            parent.spawn_bundle(PointLightBundle {
+                                transform: Transform::from_translation(data.translation),
+                                point_light: PointLight {
+                                    intensity: data.watts,
+                                    shadows_enabled: true,
+                                    ..default()
+                                },
+                                ..default()
+                            }).id()
+                        };
+                        if data.animatable.is_some() {
+                            world_state.animatable_lights.insert(data.animatable.clone().unwrap(), light_entity);
+                        }
+                    }
+                    // interactables
+                    for data in train_asset.interactables.iter() {
+                        if data.interaction.is_some() {
+                            let collider = Collider::ball(data.scale[0]);
+                            let collider_ent_id = parent
+                                    .spawn_bundle(SpatialBundle::from_transform(
+                                        Transform::from_translation(data.translation)))
+                                    .insert(collider)
+                                    .insert(CollisionGroups::new(0b0100, 0b0100))
+                                    .insert(Sensor {})
+                                    .with_children(|parent| {
+                                        if settings.graphics_settings.render_mode.as_str() == "colliders" {
+                                            parent.spawn_bundle(PbrBundle {
+                                                mesh: meshes.add(Mesh::from(shape::UVSphere { radius: data.scale[0], ..Default::default() })),
+                                                material: materials.add(Color::rgb(0.0, 0.7, 0.6).into()),
+                                                ..default()
+                                            });
+                                        }
+                                    })
+                                    .id();
+                            // todo store interaction type, collider_ent_id, etc
+                            world_state.interactable_states.insert(collider_ent_id, InteractableState { interaction: data.interaction.clone().unwrap() });
+                        } else {
+                            println!("unknown interactable :: {:?}", data);
+                        }
+                    }
+                })
+                .id());
+            if data.animatable.is_some() {
+                // store animation scene spawner reference
+                world_state.animatable_trains.insert(data.animatable.clone().unwrap(), WorldTrainState {
+                    parent_entity: train_handle,
+                    running: false,
+                });
+            }
+    }
 }
 
 fn update_world_loading(

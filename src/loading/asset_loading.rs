@@ -57,6 +57,8 @@ pub struct SettingsAssets {
 
 #[derive(AssetCollection)]
 pub struct TextureAssets {
+    #[asset(path = "textures/bottle_lightfuel_icon.png")]
+    pub bottle_lightfuel_icon: Handle<Image>,
     #[asset(path = "textures/fuse_small_icon.png")]
     pub fuse_small_icon: Handle<Image>,
     #[asset(path = "textures/bevy.png")]
@@ -65,6 +67,8 @@ pub struct TextureAssets {
 
 #[derive(AssetCollection)]
 pub struct WorldAssets {
+    #[asset(path = "world/denki_train.world")]
+    pub denki_train: Handle<WorldAsset>,
     #[asset(path = "world/world01.world")]
     pub world01: Handle<WorldAsset>,
 }
@@ -73,6 +77,8 @@ pub struct WorldAssets {
 pub struct WorldProps {
     #[asset(path = "props/big_switch.glb#Scene0")]
     pub big_switch: Handle<Scene>,
+    #[asset(path = "props/bottle_lightfuel.glb#Scene0")]
+    pub bottle_lightfuel: Handle<Scene>,
     #[asset(path = "props/cardboard_closed.glb#Scene0")]
     pub cardboard_closed: Handle<Scene>,
     #[asset(path = "props/cardboard_opened.glb#Scene0")]
@@ -83,8 +89,12 @@ pub struct WorldProps {
     pub city_fence: Handle<Scene>,
     #[asset(path = "props/denki_train.glb#Scene0")]
     pub denki_train: Handle<Scene>,
+    #[asset(path = "props/diesel_generator.glb#Scene0")]
+    pub diesel_generator: Handle<Scene>,
     #[asset(path = "props/door_blue.glb#Scene0")]
     pub door_blue: Handle<Scene>,
+    #[asset(path = "props/fountain_round.glb#Scene0")]
+    pub fountain_round: Handle<Scene>,
     #[asset(path = "props/fuse_console.glb#Scene0")]
     pub fuse_console: Handle<Scene>,
     #[asset(path = "props/fuse_small.glb#Scene0")]
@@ -103,10 +113,14 @@ pub struct WorldProps {
     pub pallet: Handle<Scene>,
     #[asset(path = "props/rail_track.glb#Scene0")]
     pub rail_track: Handle<Scene>,
+    #[asset(path = "props/train_wire.glb#Scene0")]
+    pub train_wire: Handle<Scene>,
     #[asset(path = "props/tunnel_entrance.glb#Scene0")]
     pub tunnel_entrance: Handle<Scene>,
     #[asset(path = "props/world01_building01.glb#Scene0")]
     pub world01_building01: Handle<Scene>,
+    #[asset(path = "props/world01_generator_wire.glb#Scene0")]
+    pub world01_generator_wire: Handle<Scene>,
     #[asset(path = "props/world01_ground01.glb#Scene0")]
     pub world01_ground01: Handle<Scene>,
     #[asset(path = "props/world01_ground02.glb#Scene0")]

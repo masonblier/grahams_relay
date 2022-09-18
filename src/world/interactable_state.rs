@@ -2,7 +2,7 @@ use crate::audio::{AudioEvent,AudioEventAction};
 use crate::inputs::{CursorLockState,MouseCamera,MouseLookState};
 use crate::game_state::GameState;
 use crate::loading::{AudioAssets,FontAssets};
-use crate::movement::{MovementState,Mover};
+use crate::movement::{MovementState,Mover,MoverParent};
 use crate::world::{AnimatableEvent,AnimatableEventAction,DoorEvent,
     DoorEventAction,InteractableState,InventoryEvent,InventoryEventAction,
     InventoryItem,InventoryState,LightsEvent,LightsEventAction,
@@ -94,6 +94,7 @@ fn update_interactable_interaction(
     mut interactables_state: ResMut<InteractablesState>,
     world_state: Res<WorldState>,
     camera_query: Query<&GlobalTransform, With<MouseCamera>>,
+    mover_parent_query: Query<&GlobalTransform, With<MoverParent>>,
     mouse_look: Res<MouseLookState>,
     rapier_context: Res<RapierContext>,
     mut text_query: Query<&mut Text, With<InteractablesOverlayText>>,
@@ -105,10 +106,20 @@ fn update_interactable_interaction(
 
     // get interactable ray from player state
     let mover = mover_query.single();
+    let mover_parent_transform = mover_parent_query.single();
     let camera_transform = camera_query.single();
-    let ray_pos = camera_transform.translation();
-    let ray_len = if mover.third_person { 2.5 } else { 1.7 } ;
-    let ray_dir = mouse_look.forward * ray_len;
+    let ray_pos = if mover.third_person {
+        mover_parent_transform.translation() + 0.8 * Vec3::Y
+    } else {
+        camera_transform.translation()
+    };
+    let ray_len = if mover.third_person { 1.2 } else { 1.7 } ;
+    let ray_dir = if mover.third_person {
+        -mover_parent_transform.forward() * ray_len
+    } else {
+        mouse_look.forward * ray_len
+    };
+
     let ray_groups = InteractionGroups::new(0b0100, 0b0100);
     let ray_filter = QueryFilter { groups: Some(ray_groups), ..Default::default()};
 
@@ -241,6 +252,7 @@ fn update_mouse_click_interaction(
                     "pickup_item" => {
                         let item = match action.1.as_str() {
                             "fuse_small" => InventoryItem::FuseSmall,
+                            "bottle_lightfuel" => InventoryItem::BottleLightFuel,
                             _ => {
                                 println!("bad action {:?}", action);
                                 InventoryItem::FuseSmall

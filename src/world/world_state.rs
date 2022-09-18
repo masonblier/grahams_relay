@@ -11,7 +11,9 @@ pub struct WorldState {
     pub animatables: HashMap<String, AnimatableState>,
     pub animatable_lights: HashMap<String, Entity>,
     pub animatable_sounds: HashMap<String, WorldSoundState>,
+    pub animatable_trains: HashMap<String, WorldTrainState>,
     pub doors: HashMap<String, DoorState>,
+    pub active_train: Option<String>,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -32,6 +34,13 @@ pub struct WorldSoundState {
     pub panning: f32,
     pub paused: bool,
 }
+
+#[derive(Clone, Debug, Default)]
+pub struct WorldTrainState {
+    pub parent_entity: Option<Entity>,
+    pub running: bool,
+}
+
 
 #[derive(Debug, Default)]
 pub struct DoorState {

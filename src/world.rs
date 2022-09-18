@@ -10,6 +10,8 @@ mod lights_state;
 pub use lights_state::*;
 mod sounds_state;
 pub use sounds_state::*;
+mod trains_state;
+pub use trains_state::*;
 mod world_asset_loader;
 pub use world_asset_loader::*;
 mod world_flags;

@@ -16,6 +16,7 @@ pub struct WorldAsset {
     pub lights: Vec<WorldLight>,
     pub props: Vec<WorldProp>,
     pub sounds: Vec<WorldSound>,
+    pub trains: Vec<WorldTrain>,
 }
 
 // represents data for convex colliders defined for a world
@@ -84,6 +85,17 @@ pub struct WorldLight {
     pub watts: f32,
     pub animatable: Option<String>,
 }
+
+// represents train prop
+#[derive(Debug, Deserialize)]
+pub struct WorldTrain {
+    pub prop: String,
+    pub translation: Vec3,
+    pub rotation: Quat,
+    pub scale: Vec3,
+    pub animatable: Option<String>,
+}
+
 
 #[derive(Default)]
 pub struct WorldAssetLoader;

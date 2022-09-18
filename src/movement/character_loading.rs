@@ -41,7 +41,7 @@ fn setup_character_loading(
     let half_height = 0.54;
     commands
         .spawn_bundle(SpatialBundle::from_transform(
-            Transform::from_translation(Vec3::new(-0.5,1.5,0.0))))
+            Transform::from_translation(Vec3::new(0.0,0.5,0.0))))
         .insert(Mover::default())
         .insert(RigidBody::Dynamic)
         .insert(Collider::capsule(-half_height * Vec3::Y, half_height * Vec3::Y, radius))

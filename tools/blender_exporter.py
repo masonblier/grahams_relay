@@ -31,6 +31,7 @@ def build_ron():
     propstr = ""
     lightstr = ""
     soundstr = ""
+    trainstr = ""
 
     for obj in bpy.data.objects:
         name = bpy.path.clean_name(obj.name)
@@ -154,6 +155,25 @@ def build_ron():
             soundstr +=("      animatable: "+animatable+",\n")
             soundstr +=("    ),\n")
 
+        if obj.name.startswith("Train"):
+            ptype = obj.name.split(".")[1]
+            matrix_world = obj.matrix_world
+            t = matrix_world.to_translation()
+            r = matrix_world.to_quaternion()
+            s = matrix_world.to_scale()
+            animatable = "None"
+            if "animatable" in obj:
+                animatable_name = "\""+obj["animatable"]+"\""
+                animatable = "Some("+animatable_name+")"
+
+            trainstr +=("    WorldTrain(\n")
+            trainstr +=("      prop: \"" + str(ptype) + "\",\n")
+            trainstr +=("      translation: Vec3(" + str(t[0])+","+str(t[2])+","+str(-t[1]) + "),\n")
+            trainstr +=("      rotation: Quat("+str(r[1])+","+str(r[3])+","+str(-r[2])+","+str(r[0])+","+"),\n")
+            trainstr +=("      scale: Vec3(" + str(abs(s[0]))+","+str(abs(s[1]))+","+str(abs(s[2])) + "),\n")
+            trainstr +=("      animatable: "+animatable+",\n")
+            trainstr +=("    ),\n")
+
 
     ronstr = "WorldAsset(\n"
     ronstr += "  colliders: [\n"
@@ -173,6 +193,9 @@ def build_ron():
     ronstr += "  ],\n"
     ronstr += "  sounds: [\n"
     ronstr += soundstr
+    ronstr += "  ],\n"
+    ronstr += "  trains: [\n"
+    ronstr += trainstr
     ronstr += "  ],\n"
     ronstr += ")\n"
 
