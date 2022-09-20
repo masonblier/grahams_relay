@@ -239,6 +239,7 @@ fn setup_world_loading(
                 sound: data.sound.clone(),
                 position: data.translation,
                 panning: 0.5,
+                volume: 0.5,
                 paused: data.paused,
             });
         }

@@ -1,12 +1,11 @@
-use crate::audio::{AudioEvent,AudioEventAction};
 use crate::inputs::{CursorLockState,MouseCamera,MouseLookState};
 use crate::game_state::GameState;
-use crate::loading::{AudioAssets,FontAssets};
+use crate::loading::{FontAssets};
 use crate::movement::{MovementState,Mover,MoverParent};
 use crate::world::{AnimatableEvent,AnimatableEventAction,DoorEvent,
     DoorEventAction,InteractableState,InventoryEvent,InventoryEventAction,
     InventoryItem,InventoryState,LightsEvent,LightsEventAction,
-    SoundsEvent,SoundsEventAction,
+    SoundsEvent,SoundsEventAction,TrainsEvent,TrainsEventAction,
     WorldFlagsEvent,WorldFlagsEventAction,WorldFlagsState,WorldState};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
@@ -103,6 +102,9 @@ fn update_interactable_interaction(
     if !cursor_lock_state.enabled {
         return;
     }
+    if world_state.active_train.is_some() {
+        return;
+    }
 
     // get interactable ray from player state
     let mover = mover_query.single();
@@ -172,9 +174,9 @@ fn update_mouse_click_interaction(
     mut inventory_events: EventWriter<InventoryEvent>,
     mut lights_events: EventWriter<LightsEvent>,
     mut sounds_events: EventWriter<SoundsEvent>,
+    mut trains_events: EventWriter<TrainsEvent>,
     mut world_flags_events: EventWriter<WorldFlagsEvent>,
-    mut audio_events: EventWriter<AudioEvent>,
-    audio_assets: Res<AudioAssets>,
+    // audio_assets: Res<AudioAssets>,
     mut interactables_state: ResMut<InteractablesState>,
     inventory_state: Res<InventoryState>,
     world_flags_state: Res<WorldFlagsState>,
@@ -202,12 +204,12 @@ fn update_mouse_click_interaction(
             // send action events
             for action in interactable.interaction.actions.iter() {
                 match action.0.as_str() {
-                    "audio_playonce" => {
-                        audio_events.send(AudioEvent {
-                            action: AudioEventAction::PlayOnce,
-                            source: Some(audio_assets.big_switch.clone()),
-                        });
-                    },
+                    // "audio_playonce" => {
+                    //     audio_events.send(AudioEvent {
+                    //         action: AudioEventAction::PlayOnce,
+                    //         source: Some(audio_assets.big_switch.clone()),
+                    //     });
+                    // },
                     "animate" => {
                         let parts = action.1.split(".").collect::<Vec<&str>>();
                         let animatable_name = parts[0].to_string();
@@ -274,6 +276,12 @@ fn update_mouse_click_interaction(
                             action: AnimatableEventAction::Despawn,
                             name: action.1.clone(),
                             animation: "".to_string(),
+                        });
+                    },
+                    "train_control" => {
+                        trains_events.send(TrainsEvent {
+                            action: TrainsEventAction::StartControl,
+                            train: action.1.clone(),
                         });
                     },
                     "despawn_self" => {

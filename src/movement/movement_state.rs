@@ -2,7 +2,7 @@ use crate::game_state::GameState;
 use crate::inputs::{KeyInputState,MouseCamera,MouseLookState};
 use crate::movement::{CharacterState,CharacterAnimations};
 use crate::settings::SettingsAsset;
-use crate::world::WorldState;
+use crate::world::{SoundsEvent,SoundsEventAction,WorldState};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -62,6 +62,7 @@ fn update_movement(
     mouse_look: Res<MouseLookState>,
     mut movement_state: ResMut<MovementState>,
     mut mover_query: Query<(&mut ExternalImpulse, &mut Mover)>,
+    world_state: Res<WorldState>,
 ) {
     let (mut mover_impulse, mut mover) = mover_query.single_mut();
 
@@ -74,6 +75,9 @@ fn update_movement(
     }
 
     if movement_state.noclip {
+        return;
+    }
+    if world_state.active_train.is_some() {
         return;
     }
 
@@ -139,13 +143,10 @@ fn update_character_state(
     character_state: Res<CharacterState>,
     mut movement_state: ResMut<MovementState>,
     mut animation_players: Query<(&Parent, &mut AnimationPlayer)>,
+    mut sounds_events: EventWriter<SoundsEvent>,
     settings: Res<SettingsAsset>,
-    world_state: Res<WorldState>,
 ) {
     if movement_state.noclip {
-        return;
-    }
-    if world_state.active_train.is_some() {
         return;
     }
 
@@ -184,16 +185,21 @@ fn update_character_state(
                 if !(movement_state.playing_animation.is_some() && movement_state.playing_animation.unwrap() == FORWARD_ANIMATION_IDX) {
                     movement_state.playing_animation = Some(FORWARD_ANIMATION_IDX);
                     player.play(animations.0[FORWARD_ANIMATION_IDX].clone_weak()).repeat();
-                    // todo start/stop audio in sync with animation
-                    // audio_events.send(AudioEvent {
-                    //     action: AudioEventAction::PlayOnce,
-                    //     source: Some(audio_assets.steps_snow_dry.clone()),
-                    // });
+                    // play footsteps
+                    sounds_events.send(SoundsEvent {
+                        action: SoundsEventAction::Resume,
+                        name: "footsteps".into(),
+                    });
                 }
             } else {
                 if !(movement_state.playing_animation.is_some() && movement_state.playing_animation.unwrap() == IDLE_ANIMATION_IDX) {
                     movement_state.playing_animation = Some(IDLE_ANIMATION_IDX);
                     player.play(animations.0[IDLE_ANIMATION_IDX].clone_weak()).repeat();
+                    // pause footsteps
+                    sounds_events.send(SoundsEvent {
+                        action: SoundsEventAction::Pause,
+                        name: "footsteps".into(),
+                    });
                 }
             }
         }

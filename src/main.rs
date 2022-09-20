@@ -3,6 +3,7 @@
 
 use bevy::prelude::{App, ClearColor, Color, Msaa, WindowDescriptor};
 use bevy::DefaultPlugins;
+use bevy_kira_audio::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use grahams_relay::GamePlugin;
@@ -18,6 +19,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
+        .add_plugin(AudioPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(GamePlugin)
         .run();

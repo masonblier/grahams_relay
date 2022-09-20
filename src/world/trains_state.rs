@@ -1,8 +1,7 @@
-use std::f32::consts::PI;
-
 use crate::inputs::{CursorLockState};
 use crate::game_state::GameState;
-use crate::world::WorldState;
+use crate::movement::{Mover};
+use crate::world::{SoundsEvent,SoundsEventAction,WorldState};
 use bevy::prelude::*;
 
 pub struct TrainsStatePlugin;
@@ -39,7 +38,7 @@ fn update_trains_interaction(
     }
 
     for train_event in train_events.iter() {
-        if let Some(train_state) = world_state.animatable_trains.get_mut(&train_event.train) {
+        if world_state.animatable_trains.contains_key(&train_event.train) {
             if matches!(train_event.action, TrainsEventAction::StartControl) {
                 world_state.active_train = Some(train_event.train.clone());
             }
@@ -49,20 +48,48 @@ fn update_trains_interaction(
 
 fn update_trains_movement(
     cursor_lock_state: Res<CursorLockState>,
-    world_state: Res<WorldState>,
-    mut train_events: EventReader<TrainsEvent>,
-    mut train_transforms: Query<(Entity, &mut Transform)>,
+    mut world_state: ResMut<WorldState>,
+    mut transforms: Query<(Entity, &mut Transform)>,
+    mut sounds_events: EventWriter<SoundsEvent>,
     keyboard_input: Res<Input<KeyCode>>,
+    mover_query: Query<(Entity, &Mover)>,
 ) {
     if !cursor_lock_state.enabled {
         return;
     }
 
     if world_state.active_train.is_some() {
-        if let Some(train_state) = world_state.animatable_trains.get(world_state.active_train.as_ref().unwrap()) {
-            let mut train_transform = train_transforms.get_mut(train_state.parent_entity.unwrap()).unwrap().1;
+        let train_name = world_state.active_train.as_ref().unwrap().clone();
+        if let Some(train_state) = world_state.animatable_trains.get_mut(&train_name) {
+            let mut train_transform = transforms.get_mut(train_state.parent_entity.unwrap()).unwrap().1;
+            let mut amove = 0.0;
             if keyboard_input.pressed(KeyCode::W) {
-                train_transform.translation += 0.01 * Vec3::X;
+                amove = -0.02;
+            }
+            if keyboard_input.pressed(KeyCode::S) {
+                amove = 0.02;
+            }
+            train_transform.translation += amove * Vec3::Z;
+
+            if amove.abs() >= f32::EPSILON {
+                if !train_state.running {
+                    train_state.running = true;
+                    sounds_events.send(SoundsEvent {
+                        action: SoundsEventAction::Resume,
+                        name: "train".into(),
+                    });
+                }
+
+                let (mover_ent, _mover) = mover_query.single();
+                let mut mover_transform = transforms.get_mut(mover_ent).unwrap().1;
+                mover_transform.translation += amove * Vec3::Z;
+            }
+            if amove.abs() < f32::EPSILON && train_state.running {
+                train_state.running = false;
+                sounds_events.send(SoundsEvent {
+                    action: SoundsEventAction::Pause,
+                    name: "train".into(),
+                });
             }
         }
     }

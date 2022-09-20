@@ -1,4 +1,3 @@
-mod audio;
 mod diag;
 mod game_state;
 mod inputs;
@@ -8,7 +7,6 @@ mod menu;
 mod settings;
 mod world;
 
-use crate::audio::AudioStatePlugin;
 use crate::diag::DiagOverlayPlugin;
 use crate::game_state::GameState;
 use crate::inputs::{KeyInputPlugin, MouseInputPlugin};
@@ -32,7 +30,6 @@ impl Plugin for GamePlugin {
             .add_plugin(CharacterLoadingPlugin)
             .add_plugin(SettingsPlugin)
             .add_plugin(MenuPlugin)
-            .add_plugin(AudioStatePlugin)
             .add_plugin(DiagOverlayPlugin)
             .add_plugin(WorldAssetLoaderPlugin)
             .add_plugin(WorldLoadingPlugin)
