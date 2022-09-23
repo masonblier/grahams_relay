@@ -10,7 +10,8 @@ mod world;
 use crate::diag::DiagOverlayPlugin;
 use crate::game_state::GameState;
 use crate::inputs::{KeyInputPlugin, MouseInputPlugin};
-use crate::loading::{AssetLoadingPlugin,LoadingUiStatePlugin,PreLoadingPlugin};
+use crate::loading::{AssetLoadingPlugin,LoadingUiStatePlugin,PreLoadingPlugin,
+    World01LoadingPlugin,World03LoadingPlugin};
 use crate::menu::MenuPlugin;
 use crate::movement::{CharacterLoadingPlugin,MovementStatePlugin};
 use crate::settings::SettingsPlugin;
@@ -27,6 +28,8 @@ impl Plugin for GamePlugin {
             .add_plugin(LoadingUiStatePlugin)
             .add_plugin(PreLoadingPlugin)
             .add_plugin(AssetLoadingPlugin)
+            .add_plugin(World01LoadingPlugin)
+            .add_plugin(World03LoadingPlugin)
             .add_plugin(CharacterLoadingPlugin)
             .add_plugin(SettingsPlugin)
             .add_plugin(MenuPlugin)

@@ -2,12 +2,25 @@ use crate::inputs::{CursorLockState};
 use crate::loading::{FontAssets,LoadingUiState,LoadingUiEvent,LoadingUiEventAction};
 use crate::game_state::GameState;
 use crate::menu::PauseMenuStatePlugin;
+use crate::world::WorldState;
 use bevy::prelude::*;
 
 // system state
 #[derive(Default)]
 pub struct MainMenuState {
     pub ui_entity: Option<Entity>,
+}
+
+
+// marks which button was pressed
+#[derive(Clone,Copy)]
+pub enum MenuButtonWhich {
+    PlayWorld01,
+    PlayWorld03,
+}
+#[derive(Clone,Component,Copy)]
+pub struct MenuButton {
+    pub which: MenuButtonWhich,
 }
 
 pub struct MenuPlugin;
@@ -65,8 +78,8 @@ fn setup_menu(
             parent
                 .spawn_bundle(ButtonBundle {
                     style: Style {
-                        size: Size::new(Val::Px(120.0), Val::Px(50.0)),
-                        margin: UiRect::new(Val::Px(0.),Val::Px(0.),Val::Px(0.),Val::Px(0.),),
+                        size: Size::new(Val::Percent(20.0), Val::Percent(10.0)),
+                        margin: UiRect::new(Val::Px(0.),Val::Px(0.),Val::Px(0.),Val::Percent(10.),),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
                         ..Default::default()
@@ -74,11 +87,12 @@ fn setup_menu(
                     color: button_colors.normal,
                     ..Default::default()
                 })
+                .insert(MenuButton { which: MenuButtonWhich::PlayWorld01 })
                 .with_children(|parent| {
                     parent.spawn_bundle(TextBundle {
                         text: Text {
                             sections: vec![TextSection {
-                                value: "Play".to_string(),
+                                value: "Play world01".to_string(),
                                 style: TextStyle {
                                     font: font_assets.fira_sans.clone(),
                                     font_size: 40.0,
@@ -90,6 +104,37 @@ fn setup_menu(
                         ..Default::default()
                     });
                 });
+
+                parent
+                .spawn_bundle(ButtonBundle {
+                    style: Style {
+                        size: Size::new(Val::Percent(20.0), Val::Percent(10.0)),
+                        margin: UiRect::new(Val::Px(0.),Val::Px(0.),Val::Px(0.),Val::Percent(10.),),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    },
+                    color: button_colors.normal,
+                    ..Default::default()
+                })
+                .insert(MenuButton { which: MenuButtonWhich::PlayWorld03 })
+                .with_children(|parent| {
+                    parent.spawn_bundle(TextBundle {
+                        text: Text {
+                            sections: vec![TextSection {
+                                value: "Play world03".to_string(),
+                                style: TextStyle {
+                                    font: font_assets.fira_sans.clone(),
+                                    font_size: 40.0,
+                                    color: Color::rgb(0.9, 0.9, 0.9),
+                                },
+                            }],
+                            alignment: Default::default(),
+                        },
+                        ..Default::default()
+                    });
+                });
+
                 parent.spawn_bundle(TextBundle {
                     style: Style {
                         margin: UiRect::new(Val::Px(0.),Val::Px(0.),Val::Px(0.),Val::Percent(10.),),
@@ -122,8 +167,9 @@ fn setup_menu(
 fn click_play_button(
     button_colors: Res<ButtonColors>,
     mut state: ResMut<State<GameState>>,
+    mut world_state: ResMut<WorldState>,
     mut interaction_query: Query<
-        (&Interaction, &mut UiColor),
+        (&Interaction, &MenuButton, &mut UiColor),
         (Changed<Interaction>, With<Button>),
     >,
     mut cursor_lock_controls: ResMut<CursorLockState>,
@@ -132,9 +178,15 @@ fn click_play_button(
     loading_ui_state: Res<LoadingUiState>,
     main_menu_state: Res<MainMenuState>,
 ) {
-    for (interaction, mut color) in interaction_query.iter_mut() {
+    for (interaction, button, mut color) in interaction_query.iter_mut() {
         match *interaction {
             Interaction::Clicked => {
+                if matches!(button.which, MenuButtonWhich::PlayWorld03) {
+                    world_state.active_world = "world03".into();
+                } else {
+                    world_state.active_world = "world01".into();
+                }
+
                 state.set(GameState::CharacterLoading).unwrap();
                 // request cursor lock
                 let window = windows.get_primary_mut().unwrap();

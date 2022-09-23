@@ -7,6 +7,7 @@ use std::collections::HashMap;
 // todo break apart into modules, no need for unified world state
 #[derive(Default)]
 pub struct WorldState {
+    pub active_world: String,
     pub interactable_states: HashMap<Entity, InteractableState>,
     pub animatables: HashMap<String, AnimatableState>,
     pub animatable_lights: HashMap<String, Entity>,

@@ -1,4 +1,5 @@
-use crate::loading::{LoadingUiEvent,LoadingUiEventAction,WorldAssets,WorldProps};
+use crate::loading::{LoadingUiEvent,LoadingUiEventAction,WorldAssets,
+    WorldProps,World01Props,World03Props};
 use crate::game_state::GameState;
 use crate::settings::SettingsAsset;
 use crate::world::{DoorState,InteractableState,WorldAsset,WorldState,
@@ -13,6 +14,7 @@ pub struct WorldLoadingPlugin;
 #[derive(Default)]
 pub struct WorldLoadingState {
     animatable_scenes: HashMap<String, InstanceId>,
+    inited: bool,
     done: bool,
 }
 
@@ -21,8 +23,39 @@ impl Plugin for WorldLoadingPlugin {
         app
             .init_resource::<WorldLoadingState>()
             .init_resource::<WorldState>()
+            .add_system_set(SystemSet::on_enter(GameState::WorldInit).with_system(setup_world_init))
+            .add_system_set(SystemSet::on_update(GameState::WorldInit).with_system(update_world_init))
             .add_system_set(SystemSet::on_enter(GameState::WorldLoading).with_system(setup_world_loading))
             .add_system_set(SystemSet::on_update(GameState::WorldLoading).with_system(update_world_loading));
+    }
+}
+
+fn setup_world_init(
+    mut world_loading: ResMut<WorldLoadingState>,
+    mut loading_ui_events: EventWriter<LoadingUiEvent>,
+) {
+    world_loading.inited = false;
+
+    // update loading ui text
+    loading_ui_events.send(LoadingUiEvent {
+        action: LoadingUiEventAction::SetText,
+        payload: Some("Spawning".into()),
+    });
+}
+
+fn update_world_init(
+    mut state: ResMut<State<GameState>>,
+    mut world_loading: ResMut<WorldLoadingState>,
+    world_state: Res<WorldState>,
+) {
+    if !world_loading.inited {
+        world_loading.inited = true;
+        // todo clear world entities
+        if world_state.active_world == "world03" {
+            state.set(GameState::World03Loading).unwrap();
+        } else {
+            state.set(GameState::World01Loading).unwrap();
+        }
     }
 }
 
@@ -31,50 +64,58 @@ fn setup_world_loading(
     mut scene_spawner: ResMut<SceneSpawner>,
     world_assets: Res<Assets<WorldAsset>>,
     world_props: Res<WorldProps>,
+    world01_props: Res<World01Props>,
+    world03_props: Res<World03Props>,
     world_handles: Res<WorldAssets>,
     mut world_loading: ResMut<WorldLoadingState>,
     mut world_state: ResMut<WorldState>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     settings: Res<SettingsAsset>,
-    mut loading_ui_events: EventWriter<LoadingUiEvent>,
 ) {
-    let world_asset = world_assets.get(&world_handles.world01).unwrap();
-
-    // update loading ui text
-    loading_ui_events.send(LoadingUiEvent {
-        action: LoadingUiEventAction::SetText,
-        payload: Some("Spawning".into()),
-    });
+    let world_asset = if world_state.active_world == "world03" {
+        world_assets.get(&world_handles.world03).unwrap()
+    } else {
+        world_assets.get(&world_handles.world01).unwrap()
+    };
 
     // load props
     for data in world_asset.props.iter() {
         let prop_handle: Option<Handle<Scene>> = match data.prop.as_str() {
             "big_switch" => Some(world_props.big_switch.clone()),
             "bottle_lightfuel" => Some(world_props.bottle_lightfuel.clone()),
-            "cardboard_closed" => Some(world_props.cardboard_closed.clone()),
-            "cardboard_opened" => Some(world_props.cardboard_opened.clone()),
-            "cardboard_tube" => Some(world_props.cardboard_tube.clone()),
+            "cardboard_closed" => Some(world01_props.cardboard_closed.clone()),
+            "cardboard_opened" => Some(world01_props.cardboard_opened.clone()),
+            "cardboard_tube" => Some(world01_props.cardboard_tube.clone()),
             "city_fence" => Some(world_props.city_fence.clone()),
             "diesel_generator" => Some(world_props.diesel_generator.clone()),
             "door_blue" => Some(world_props.door_blue.clone()),
-            "fountain_round" => Some(world_props.fountain_round.clone()),
+            "fountain_round" => Some(world01_props.fountain_round.clone()),
             "fuse_console" => Some(world_props.fuse_console.clone()),
             "fuse_small" => Some(world_props.fuse_small.clone()),
-            "house_roof01" => Some(world_props.house_roof01.clone()),
-            "house_woodside" => Some(world_props.house_woodside.clone()),
-            "office_table" => Some(world_props.office_desk01.clone()),
-            "office_desk" => Some(world_props.office_desk02.clone()),
-            "office_chair" => Some(world_props.office_chair.clone()),
-            "pallet" => Some(world_props.pallet.clone()),
+            "house_roof01" => Some(world01_props.house_roof01.clone()),
+            "house_woodside" => Some(world01_props.house_woodside.clone()),
+            "office_table" => Some(world01_props.office_desk01.clone()),
+            "office_desk" => Some(world01_props.office_desk02.clone()),
+            "office_chair" => Some(world01_props.office_chair.clone()),
+            "pallet" => Some(world01_props.pallet.clone()),
             "rail_track" => Some(world_props.rail_track.clone()),
             "train_wire" => Some(world_props.train_wire.clone()),
             "tunnel_entrance" => Some(world_props.tunnel_entrance.clone()),
-            "world01_building01" => Some(world_props.world01_building01.clone()),
+            "world01_building01" => Some(world01_props.world01_building01.clone()),
             "world01_generator_wire" => Some(world_props.world01_generator_wire.clone()),
-            "world01_ground01" => Some(world_props.world01_ground01.clone()),
+            "world01_ground01" => Some(world01_props.world01_ground01.clone()),
             "world01_ground02" => Some(world_props.world01_ground02.clone()),
             "world01_ground03" => Some(world_props.world01_ground03.clone()),
+            "refinery_column01" => Some(world03_props.refinery_column01.clone()),
+            "refinery_desalter" => Some(world03_props.refinery_desalter.clone()),
+            "refinery_scaffolding" => Some(world03_props.refinery_scaffolding.clone()),
+            "refinery_sphere" => Some(world03_props.refinery_sphere.clone()),
+            "refinery_tank01" => Some(world03_props.refinery_tank01.clone()),
+            "refinery_warmer" => Some(world03_props.refinery_warmer.clone()),
+            "world03_ground" => Some(world03_props.world03_ground.clone()),
+            "world03_pipes" => Some(world03_props.world03_pipes.clone()),
+            "world03_walkways" => Some(world03_props.world03_walkways.clone()),
             _ => {
                 println!("Unknown prop! {:?}", data);
                 None
@@ -335,11 +376,16 @@ fn setup_world_loading(
                     for data in train_asset.interactables.iter() {
                         if data.interaction.is_some() {
                             let collider = Collider::ball(data.scale[0]);
+                            let cgroup = if data.interaction.as_ref().unwrap().interaction == "click" {
+                                CollisionGroups::new(0b0100, 0b0100)
+                            } else {
+                                CollisionGroups::new(0b0010, 0b0010)
+                            };
                             let collider_ent_id = parent
                                     .spawn_bundle(SpatialBundle::from_transform(
                                         Transform::from_translation(data.translation)))
                                     .insert(collider)
-                                    .insert(CollisionGroups::new(0b0100, 0b0100))
+                                    .insert(cgroup)
                                     .insert(Sensor {})
                                     .with_children(|parent| {
                                         if settings.graphics_settings.render_mode.as_str() == "colliders" {

@@ -280,6 +280,18 @@ WorldAsset(
         blockers: [],
       )),
     ),
+    WorldInteractable(
+      shape: "ball",
+      translation: Vec3(-6.9723005294799805,0.7973099946975708,-3.9349799156188965),
+      rotation: Quat(0.0,0.0,-0.0,1.0,),
+      scale: Vec3(1.9999998807907104,1.9999998807907104,1.9999998807907104),
+      interaction: Some(WorldInteraction(
+        interaction: "enter",
+        interaction_text: "",
+        actions: [("load_world","world02")],
+        blockers: [],
+      )),
+    ),
   ],
   props: [
     WorldProp(

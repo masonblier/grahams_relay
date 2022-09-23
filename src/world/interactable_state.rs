@@ -18,6 +18,8 @@ const INTERACTION_BLOCKED_DURATION: f32 = 1.2;
 pub struct InteractablesState {
     pub active_interactable: Option<InteractableState>,
     pub active_interactable_entity: Option<Entity>,
+    pub active_entered_interactable: Option<InteractableState>,
+    pub active_entered_entity: Option<Entity>,
     pub ui_entity: Option<Entity>,
     pub blocked_rmn: f32,
 }
@@ -36,6 +38,7 @@ impl Plugin for InteractableStatePlugin {
             .with_system(setup_interactable_interaction))
         .add_system_set(
             SystemSet::on_update(GameState::Running)
+            .with_system(update_interactable_enter_exit)
             .with_system(update_interactable_interaction)
             .with_system(update_mouse_click_interaction)
         )
@@ -86,6 +89,51 @@ fn setup_interactable_interaction(
     interactables_state.blocked_rmn = INITIAL_BLOCKED_DURATION;
 }
 
+fn update_interactable_enter_exit(
+    mut interactables_state: ResMut<InteractablesState>,
+    world_state: Res<WorldState>,
+    mover_parent_query: Query<&GlobalTransform, With<MoverParent>>,
+    rapier_context: Res<RapierContext>,
+    mut game_state: ResMut<State<GameState>>,
+) {
+    // get interactable ray from player state
+    let mover_parent_transform = mover_parent_query.single();
+    let mover_pos = mover_parent_transform.translation() + 0.8 * Vec3::Y;
+
+    let ray_groups = InteractionGroups::new(0b0100, 0b0100);
+    let ray_filter = QueryFilter { groups: Some(ray_groups), ..Default::default()};
+
+    // cast for interactables
+    let (entity, interactable) = if interactables_state.blocked_rmn > 0.0001 {
+        (None, None)
+    } else if let Some((entity, _toi)) = rapier_context.cast_ray(
+        mover_pos, -0.01*Vec3::Y, 1.0, true, ray_filter
+    ) {
+        if let Some(interactable) = world_state.interactable_states.get(&entity) {
+            (Some(entity), Some(interactable.clone()))
+        } else { (None, None) }
+    } else { (None, None) };
+
+    // if active interactable changed
+    if interactables_state.active_entered_entity != entity {
+        interactables_state.active_entered_entity = entity;
+        interactables_state.active_entered_interactable = interactable;
+
+        if let Some(interactable) = &interactables_state.active_entered_interactable {
+            // enter interaction
+            if interactable.interaction.interaction == "enter" {
+                for action in interactable.interaction.actions.iter() {
+                    if action.0 == "load_world" {
+                        game_state.set(GameState::Menu).unwrap();
+                    }
+                }
+            }
+        } else {
+            // exit interaction
+        }
+    }
+}
+
 fn update_interactable_interaction(
     cursor_lock_state: Res<CursorLockState>,
     inventory_state: Res<InventoryState>,
@@ -103,6 +151,12 @@ fn update_interactable_interaction(
         return;
     }
     if world_state.active_train.is_some() {
+        if interactables_state.active_interactable.is_some() {
+            interactables_state.active_interactable_entity = None;
+            interactables_state.active_interactable = None;
+            let mut text = text_query.single_mut();
+            text.sections[0].value = "".to_string();
+        }
         return;
     }
 

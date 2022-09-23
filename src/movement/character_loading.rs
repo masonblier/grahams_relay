@@ -105,6 +105,7 @@ fn setup_character_animations(
 }
 
 fn update_character_loading(
+    mut commands: Commands,
     mut character_loading: ResMut<CharacterLoadingState>,
     mut character_state: ResMut<CharacterState>,
     mut state: ResMut<State<GameState>>,
@@ -116,25 +117,36 @@ fn update_character_loading(
     }
     if settings.graphics_settings.render_mode.as_str() == "colliders" {
         character_loading.done = true;
-        state.set(GameState::WorldLoading).unwrap();
+        state.set(GameState::WorldInit).unwrap();
         return;
     }
 
-    // get player scene root entity
-    let mut lowest_ent: Option<Entity> = None;
+    // get player scene root entity (3rd lowest entity number?)
+    // todo figure out a better way
+    let mut lowest_ent_01: Option<Entity> = None;
+    let mut lowest_ent_02: Option<Entity> = None;
+    let mut lowest_ent_03: Option<Entity> = None;
     if let Some(inst_iter) = scene_spawner.iter_instance_entities(character_loading.character_scene_instance.unwrap()) {
         for inst in inst_iter {
-            if !lowest_ent.is_some() || inst.id() < lowest_ent.unwrap().id() {
-                lowest_ent = Some(inst);
+            commands.entity(inst).log_components();
+            if !lowest_ent_01.is_some() || inst.id() < lowest_ent_01.unwrap().id() {
+                lowest_ent_03 = lowest_ent_02;
+                lowest_ent_02 = lowest_ent_01;
+                lowest_ent_01 = Some(inst);
+            } else if !lowest_ent_02.is_some() || inst.id() < lowest_ent_02.unwrap().id() {
+                lowest_ent_03 = lowest_ent_02;
+                lowest_ent_02 = Some(inst);
+            } else if !lowest_ent_03.is_some() || inst.id() < lowest_ent_03.unwrap().id() {
+                lowest_ent_03 = Some(inst);
             }
         }
     }
 
-    if lowest_ent.is_some() {
-        character_state.character_anim_entity = lowest_ent.clone();
+    if lowest_ent_03.is_some() {
+        character_state.character_anim_entity = lowest_ent_03.clone();
 
-        info!("Character loaded: {:?}", lowest_ent);
+        info!("Character loaded: {:?}", lowest_ent_03);
         character_loading.done = true;
-        state.set(GameState::WorldLoading).unwrap();
+        state.set(GameState::WorldInit).unwrap();
     }
 }

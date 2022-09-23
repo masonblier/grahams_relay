@@ -73,7 +73,9 @@ def build_ron():
             interaction = "None"
             if "interaction" in obj:
                 interaction_type = "\""+obj["interaction"]+"\""
-                interaction_text = "\""+obj["interaction_text"]+"\""
+                interaction_text = "\"\""
+                if "interaction_text" in obj:
+                    interaction_text = "\""+obj["interaction_text"]+"\""
                 interaction_actions = ""
                 if "interaction_actions" in obj:
                     interaction_actions = ""+obj["interaction_actions"]+""
