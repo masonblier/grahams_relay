@@ -1,6 +1,7 @@
 use crate::loading::{LoadingUiEvent,LoadingUiEventAction,WorldAssets,
     WorldProps,World01Props,World03Props};
 use crate::game_state::GameState;
+use crate::movement::Mover;
 use crate::settings::SettingsAsset;
 use crate::world::{DoorState,InteractableState,WorldAsset,WorldState,
     WorldSoundState,WorldTrainState,AnimatableState};
@@ -18,6 +19,10 @@ pub struct WorldLoadingState {
     done: bool,
 }
 
+// component to tag unloadable world items
+#[derive(Component,Default)]
+pub struct WorldEntity;
+
 impl Plugin for WorldLoadingPlugin {
     fn build(&self, app: &mut App) {
         app
@@ -31,8 +36,11 @@ impl Plugin for WorldLoadingPlugin {
 }
 
 fn setup_world_init(
+    mut commands: Commands,
     mut world_loading: ResMut<WorldLoadingState>,
     mut loading_ui_events: EventWriter<LoadingUiEvent>,
+    world_ents: Query<(Entity,With<WorldEntity>,Without<Mover>)>,
+    mover_ents: Query<(Entity,With<Mover>,Without<WorldEntity>)>,
 ) {
     world_loading.inited = false;
 
@@ -41,6 +49,14 @@ fn setup_world_init(
         action: LoadingUiEventAction::SetText,
         payload: Some("Spawning".into()),
     });
+
+    // clear any previous entities
+    for (ent, _, _) in world_ents.iter() {
+        commands.entity(ent).despawn_recursive();
+    }
+    for (ent, _, _) in mover_ents.iter() {
+        commands.entity(ent).despawn_recursive();
+    }
 }
 
 fn update_world_init(
@@ -50,11 +66,10 @@ fn update_world_init(
 ) {
     if !world_loading.inited {
         world_loading.inited = true;
-        // todo clear world entities
-        if world_state.active_world == "world03" {
-            state.set(GameState::World03Loading).unwrap();
+        if world_state.active_world == "credits" {
+            state.set(GameState::Credits).unwrap();
         } else {
-            state.set(GameState::World01Loading).unwrap();
+            state.set(GameState::CharacterLoading).unwrap();
         }
     }
 }
@@ -73,6 +88,18 @@ fn setup_world_loading(
     mut materials: ResMut<Assets<StandardMaterial>>,
     settings: Res<SettingsAsset>,
 ) {
+    world_loading.done = false;
+
+    // reset state
+    world_loading.animatable_scenes = HashMap::new();
+    world_state.interactable_states = HashMap::new();
+    world_state.animatables = HashMap::new();
+    world_state.animatable_lights = HashMap::new();
+    world_state.animatable_sounds = HashMap::new();
+    world_state.animatable_trains = HashMap::new();
+    world_state.doors = HashMap::new();
+    world_state.active_train = None;
+
     let world_asset = if world_state.active_world == "world03" {
         world_assets.get(&world_handles.world03).unwrap()
     } else {
@@ -125,7 +152,9 @@ fn setup_world_loading(
         if prop_handle.is_some() {
             commands.spawn_bundle(SpatialBundle::from_transform(
                 Transform::from_translation(data.translation)
-            )).with_children(|parent2| {
+            ))
+            .insert(WorldEntity)
+            .with_children(|parent2| {
                 let parent = parent2.spawn_bundle(SpatialBundle::from_transform(
                     Transform::from_rotation(data.rotation)
                 )).id();
@@ -154,7 +183,7 @@ fn setup_world_loading(
                         Transform::from_translation(data.translation)))
                     .insert(shape_handle.unwrap())
                     .insert(CollisionGroups::new(0b0001, 0b0001))
-
+                    .insert(WorldEntity)
                     .with_children(|parent| {
                         if settings.graphics_settings.render_mode.as_str() == "colliders" {
                             parent.spawn_bundle(PbrBundle {
@@ -180,7 +209,9 @@ fn setup_world_loading(
         if prop_handle.is_some() {
             let parent_entity = commands.spawn_bundle(SpatialBundle::from_transform(
                 Transform::from_translation(data.translation)
-            )).with_children(|parent2| {
+            ))
+            .insert(WorldEntity)
+            .with_children(|parent2| {
                 let parent = parent2.spawn_bundle(SpatialBundle::from_transform(
                     Transform::from_rotation(data.rotation)
                 )).id();
@@ -227,6 +258,7 @@ fn setup_world_loading(
                     .insert(collider)
                     .insert(CollisionGroups::new(0b0100, 0b0100))
                     .insert(Sensor {})
+                    .insert(WorldEntity)
                     .with_children(|parent| {
                         if settings.graphics_settings.render_mode.as_str() == "colliders" {
                             parent.spawn_bundle(PbrBundle {
@@ -255,7 +287,9 @@ fn setup_world_loading(
                     ..default()
                 },
                 ..default()
-            }).id()
+            })
+            .insert(WorldEntity)
+            .id()
         } else {
             commands.spawn_bundle(PointLightBundle {
                 transform: Transform::from_translation(data.translation),
@@ -265,7 +299,9 @@ fn setup_world_loading(
                     ..default()
                 },
                 ..default()
-            }).id()
+            })
+            .insert(WorldEntity)
+            .id()
         };
         if data.animatable.is_some() {
             world_state.animatable_lights.insert(data.animatable.clone().unwrap(), light_entity);
@@ -292,6 +328,7 @@ fn setup_world_loading(
         let train_handle = Some(commands
             .spawn_bundle(SpatialBundle::from_transform(
                 Transform::from_translation(data.translation)))
+                .insert(WorldEntity)
                 .with_children(|parent| {
                     let world_handle: Option<Handle<WorldAsset>> = match data.prop.as_str() {
                         "denki_train" => Some(world_handles.denki_train.clone()),
@@ -422,6 +459,7 @@ fn update_world_loading(
     scene_spawner: Res<SceneSpawner>,
     asset_server: Res<AssetServer>,
     mut loading_ui_events: EventWriter<LoadingUiEvent>,
+    mut rapier_conf: ResMut<RapierConfiguration>,
 ) {
     if world_loading.done {
         return;
@@ -444,6 +482,9 @@ fn update_world_loading(
 
         world_loading.done = true;
         state.set(GameState::Running).unwrap();
+
+        // resume physics
+        rapier_conf.physics_pipeline_active = true;
     } else {
         // check for waiting loaded scenes
         for waiting_key in waiting_keys {

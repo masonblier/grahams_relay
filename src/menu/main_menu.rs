@@ -1,7 +1,7 @@
 use crate::inputs::{CursorLockState};
 use crate::loading::{FontAssets,LoadingUiState,LoadingUiEvent,LoadingUiEventAction};
 use crate::game_state::GameState;
-use crate::menu::PauseMenuStatePlugin;
+use crate::menu::{CreditsStatePlugin,PauseMenuStatePlugin};
 use crate::world::WorldState;
 use bevy::prelude::*;
 
@@ -30,6 +30,7 @@ pub struct MenuPlugin;
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app
+            .add_plugin(CreditsStatePlugin)
             .add_plugin(PauseMenuStatePlugin)
             .init_resource::<ButtonColors>()
             .insert_resource(MainMenuState::default())
@@ -59,6 +60,8 @@ fn setup_menu(
     button_colors: Res<ButtonColors>,
     mut main_menu_state: ResMut<MainMenuState>,
     mut loading_ui_events: EventWriter<LoadingUiEvent>,
+    mut cursor_lock_controls: ResMut<CursorLockState>,
+    mut windows: ResMut<Windows>,
 ) {
     // spawn menu
     main_menu_state.ui_entity = Some(commands
@@ -162,6 +165,13 @@ fn setup_menu(
         action: LoadingUiEventAction::Hide,
         payload: None,
     });
+    // exit cursor lock
+    let window = windows.get_primary_mut().unwrap();
+    if window.cursor_locked() {
+        window.set_cursor_lock_mode(false);
+        window.set_cursor_visibility(true);
+        cursor_lock_controls.enabled = false;
+    }
 }
 
 fn click_play_button(
@@ -187,7 +197,7 @@ fn click_play_button(
                     world_state.active_world = "world01".into();
                 }
 
-                state.set(GameState::CharacterLoading).unwrap();
+                state.set(GameState::WorldInit).unwrap();
                 // request cursor lock
                 let window = windows.get_primary_mut().unwrap();
                 window.set_cursor_lock_mode(true);

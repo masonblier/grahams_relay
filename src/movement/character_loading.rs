@@ -2,6 +2,7 @@ use crate::game_state::GameState;
 use crate::loading::{CharacterAssets};
 use crate::movement::{CharacterState,Mover,MoverParent};
 use crate::settings::SettingsAsset;
+use crate::world::WorldState;
 use bevy::prelude::*;
 use bevy::scene::InstanceId;
 use bevy_rapier3d::prelude::*;
@@ -36,6 +37,7 @@ fn setup_character_loading(
     mut scene_spawner: ResMut<SceneSpawner>,
     settings: Res<SettingsAsset>,
     mut character_loading: ResMut<CharacterLoadingState>,
+    mut rapier_conf: ResMut<RapierConfiguration>,
 ) {
     let radius = 0.5;
     let half_height = 0.54;
@@ -88,6 +90,9 @@ fn setup_character_loading(
                 scene_spawner.spawn_as_child(character_handles.graham.clone(), character_parent));
             }
         });
+    character_loading.done = false;
+    // pause physics
+    rapier_conf.physics_pipeline_active = false;
 }
 
 fn setup_character_animations(
@@ -105,19 +110,27 @@ fn setup_character_animations(
 }
 
 fn update_character_loading(
-    mut commands: Commands,
     mut character_loading: ResMut<CharacterLoadingState>,
     mut character_state: ResMut<CharacterState>,
     mut state: ResMut<State<GameState>>,
     scene_spawner: Res<SceneSpawner>,
     settings: Res<SettingsAsset>,
+    world_state: Res<WorldState>,
 ) {
     if character_loading.done {
         return;
     }
     if settings.graphics_settings.render_mode.as_str() == "colliders" {
         character_loading.done = true;
-        state.set(GameState::WorldInit).unwrap();
+
+        if world_state.active_world == "credits" {
+            state.set(GameState::Credits).unwrap();
+        } else if world_state.active_world == "world03" {
+            state.set(GameState::World03Loading).unwrap();
+        } else {
+            state.set(GameState::World01Loading).unwrap();
+        }
+
         return;
     }
 
@@ -128,7 +141,6 @@ fn update_character_loading(
     let mut lowest_ent_03: Option<Entity> = None;
     if let Some(inst_iter) = scene_spawner.iter_instance_entities(character_loading.character_scene_instance.unwrap()) {
         for inst in inst_iter {
-            commands.entity(inst).log_components();
             if !lowest_ent_01.is_some() || inst.id() < lowest_ent_01.unwrap().id() {
                 lowest_ent_03 = lowest_ent_02;
                 lowest_ent_02 = lowest_ent_01;
@@ -147,6 +159,12 @@ fn update_character_loading(
 
         info!("Character loaded: {:?}", lowest_ent_03);
         character_loading.done = true;
-        state.set(GameState::WorldInit).unwrap();
+        if world_state.active_world == "credits" {
+            state.set(GameState::Credits).unwrap();
+        } else if world_state.active_world == "world03" {
+            state.set(GameState::World03Loading).unwrap();
+        } else {
+            state.set(GameState::World01Loading).unwrap();
+        }
     }
 }

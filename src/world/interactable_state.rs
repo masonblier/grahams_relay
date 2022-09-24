@@ -91,7 +91,7 @@ fn setup_interactable_interaction(
 
 fn update_interactable_enter_exit(
     mut interactables_state: ResMut<InteractablesState>,
-    world_state: Res<WorldState>,
+    mut world_state: ResMut<WorldState>,
     mover_parent_query: Query<&GlobalTransform, With<MoverParent>>,
     rapier_context: Res<RapierContext>,
     mut game_state: ResMut<State<GameState>>,
@@ -124,7 +124,8 @@ fn update_interactable_enter_exit(
             if interactable.interaction.interaction == "enter" {
                 for action in interactable.interaction.actions.iter() {
                     if action.0 == "load_world" {
-                        game_state.set(GameState::Menu).unwrap();
+                        world_state.active_world = "credits".into();
+                        game_state.set(GameState::WorldInit).unwrap();
                     }
                 }
             }

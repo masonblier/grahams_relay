@@ -11,6 +11,7 @@ pub enum GameState {
     WorldInit,
     World01Loading,
     World03Loading,
+    Credits,
     // Here the menu is drawn and waiting for player interaction
     Menu,
     // During this State the actual game logic is executed

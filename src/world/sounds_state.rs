@@ -28,6 +28,9 @@ impl Plugin for SoundsStatePlugin {
             SystemSet::on_update(GameState::Running)
             .with_system(update_sounds_interaction)
             .with_system(update_sounds_states)
+        ).add_system_set(
+            SystemSet::on_exit(GameState::Running)
+            .with_system(exit_sounds_interaction)
         );
     }
 }
@@ -38,46 +41,96 @@ fn setup_sounds_interaction(
     mut world_state: ResMut<WorldState>,
 ) {
     for (sound_name, sounds_state) in world_state.animatable_sounds.iter() {
-        let channel = audio
-            .create_channel(sound_name);
-        channel
-            .play(asset_server.load(&format!("audio/{}.ogg", sounds_state.sound)))
-            .looped();
-        if sounds_state.paused {
-            channel.pause();
+        if audio.is_channel(sound_name) {
+            let channel = audio.channel(sound_name);
+            if sounds_state.paused {
+                channel.pause();
+            } else {
+                channel.resume();
+            }
+        } else {
+            let channel = audio
+                .create_channel(sound_name);
+            channel
+                .play(asset_server.load(&format!("audio/{}.ogg", sounds_state.sound)))
+                .looped();
+            if sounds_state.paused {
+                channel.pause();
+            }
         }
     }
 
     // footsteps
-    let channel = audio
-        .create_channel("footsteps");
-    channel
-        .play(asset_server.load(&format!("audio/steps_snow_dry.ogg")))
-        .with_volume(0.2)
-        .looped();
-    channel.pause();
-    world_state.animatable_sounds.insert("footsteps".into(), WorldSoundState {
-        sound: "steps_snow_dry".into(),
-        position: Vec3::ZERO,
-        paused: true,
-        volume: 0.2,
-        panning: 0.5,
-    });
+
+    if audio.is_channel("footsteps") {
+        let channel = audio.channel("footsteps");
+        if let Some(sound_state) = world_state.animatable_sounds.get("footsteps") {
+            if sound_state.paused {
+                channel.pause();
+            } else {
+                channel.resume();
+            }
+        } else {
+            channel.pause();
+            world_state.animatable_sounds.insert("footsteps".into(), WorldSoundState {
+                sound: "steps_snow_dry".into(),
+                position: Vec3::ZERO,
+                paused: true,
+                volume: 0.2,
+                panning: 0.5,
+            });
+        }
+    } else {
+        let channel = audio
+            .create_channel("footsteps");
+        channel
+            .play(asset_server.load(&format!("audio/steps_snow_dry.ogg")))
+            .with_volume(0.2)
+            .looped();
+        channel.pause();
+        world_state.animatable_sounds.insert("footsteps".into(), WorldSoundState {
+            sound: "steps_snow_dry".into(),
+            position: Vec3::ZERO,
+            paused: true,
+            volume: 0.2,
+            panning: 0.5,
+        });
+    }
     // train
-    let channel = audio
-        .create_channel("train");
-    channel
-        .play(asset_server.load(&format!("audio/train_rolling.ogg")))
-        .with_volume(1.0)
-        .looped();
-    channel.pause();
-    world_state.animatable_sounds.insert("train".into(), WorldSoundState {
-        sound: "train_rolling".into(),
-        position: Vec3::ZERO,
-        paused: true,
-        volume: 0.5,
-        panning: 0.5,
-    });
+    if audio.is_channel("train") {
+        let channel = audio.channel("train");
+        if let Some(sound_state) = world_state.animatable_sounds.get("train") {
+            if sound_state.paused {
+                channel.pause();
+            } else {
+                channel.resume();
+            }
+        } else {
+            channel.pause();
+            world_state.animatable_sounds.insert("train".into(), WorldSoundState {
+                sound: "train_rolling".into(),
+                position: Vec3::ZERO,
+                paused: true,
+                volume: 0.5,
+                panning: 0.5,
+            });
+        }
+    } else {
+        let channel = audio
+            .create_channel("train");
+        channel
+            .play(asset_server.load(&format!("audio/train_rolling.ogg")))
+            .with_volume(1.0)
+            .looped();
+        channel.pause();
+        world_state.animatable_sounds.insert("train".into(), WorldSoundState {
+            sound: "train_rolling".into(),
+            position: Vec3::ZERO,
+            paused: true,
+            volume: 0.5,
+            panning: 0.5,
+        });
+    }
 }
 
 fn update_sounds_interaction(
@@ -138,5 +191,14 @@ fn update_sounds_states(
                 sounds_state.volume = volume;
             }
         }
+    }
+}
+
+fn exit_sounds_interaction(
+    audio: Res<DynamicAudioChannels>,
+    world_state: Res<WorldState>,
+) {
+    for (sound_name, _sounds_state) in world_state.animatable_sounds.iter() {
+        audio.channel(sound_name).pause();
     }
 }
