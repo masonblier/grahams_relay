@@ -11,7 +11,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 const INITIAL_BLOCKED_DURATION: f32 = 0.4;
-const INTERACTION_BLOCKED_DURATION: f32 = 1.2;
+const INTERACTION_BLOCKED_DURATION: f32 = 2.2;
 
 // system state
 #[derive(Default)]

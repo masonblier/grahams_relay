@@ -45,7 +45,7 @@ pub struct AudioAssets {
 
 #[derive(AssetCollection)]
 pub struct CharacterAssets {
-    #[asset(path = "characters/graham_4action_v2.glb#Scene0")]
+    #[asset(path = "characters/graham_v4.glb#Scene0")]
     pub graham: Handle<Scene>,
 }
 

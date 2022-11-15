@@ -9,9 +9,12 @@ use bevy_rapier3d::prelude::*;
 const MOVE_SPEED: f32 = 30.0;
 const CAMERA_FLY_MOVE_SPEED: f32 = 10.0;
 
-const FORWARD_ANIMATION_IDX: usize = 0;
-const IDLE_ANIMATION_IDX: usize = 4;
-const TOGGLE_SWITCH_ANIMATION_IDX: usize = 1;
+// const RESET_ANIMATION_IDX: usize = 1;
+const IDLE_ANIMATION_IDX: usize = 0;
+const TOGGLE_SWITCH_ANIMATION_IDX: usize = 4;
+const FORWARD_ANIMATION_IDX: usize = 5;
+// const FORWARD_RUN_ANIMATION_IDX: usize = 2;
+// const TAKE_ITEM_ANIMATION_IDX: usize = 3;
 
 // system state
 #[derive(Default)]

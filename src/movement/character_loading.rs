@@ -101,11 +101,12 @@ fn setup_character_animations(
 ) {
     // Insert a resource with the current scene information
     commands.insert_resource(CharacterAnimations(vec![
-        asset_server.load("characters/graham_4action_v2.glb#Animation4"),
-        asset_server.load("characters/graham_4action_v2.glb#Animation3"),
-        asset_server.load("characters/graham_4action_v2.glb#Animation2"),
-        asset_server.load("characters/graham_4action_v2.glb#Animation1"),
-        asset_server.load("characters/graham_4action_v2.glb#Animation0"),
+        asset_server.load("characters/graham_v4.glb#Animation0"),
+        asset_server.load("characters/graham_v4.glb#Animation1"),
+        asset_server.load("characters/graham_v4.glb#Animation2"),
+        asset_server.load("characters/graham_v4.glb#Animation3"),
+        asset_server.load("characters/graham_v4.glb#Animation4"),
+        asset_server.load("characters/graham_v4.glb#Animation5"),
     ]));
 }
 
