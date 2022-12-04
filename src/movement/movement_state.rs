@@ -6,14 +6,15 @@ use crate::world::{SoundsEvent,SoundsEventAction,WorldState};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
-const MOVE_SPEED: f32 = 30.0;
+const MOVE_SPEED: f32 = 20.0;
+const RUN_SPEED: f32 = MOVE_SPEED * 2.0;
 const CAMERA_FLY_MOVE_SPEED: f32 = 10.0;
 
 // const RESET_ANIMATION_IDX: usize = 1;
 const IDLE_ANIMATION_IDX: usize = 0;
 const TOGGLE_SWITCH_ANIMATION_IDX: usize = 4;
 const FORWARD_ANIMATION_IDX: usize = 5;
-// const FORWARD_RUN_ANIMATION_IDX: usize = 2;
+const FORWARD_RUN_ANIMATION_IDX: usize = 2;
 // const TAKE_ITEM_ANIMATION_IDX: usize = 3;
 
 // system state
@@ -86,7 +87,7 @@ fn update_movement(
 
     let mouse_forward = (mouse_look.forward * Vec3::new(1.0, 0.0, 1.0)).normalize();
     let mouse_right = (mouse_look.right * Vec3::new(1.0, 0.0, 1.0)).normalize();
-    let wish_move = MOVE_SPEED * time.delta_seconds() * (
+    let wish_move = (if key_state.run { RUN_SPEED } else { MOVE_SPEED }) * time.delta_seconds() * (
         if key_state.forward { mouse_forward } else { Vec3::ZERO } +
         if key_state.backward { -mouse_forward } else { Vec3::ZERO } +
         if key_state.right { mouse_right } else { Vec3::ZERO } +
@@ -118,6 +119,8 @@ fn update_camera(
                 if key_state.left { -mouse_look.right.clone() } else { Vec3::ZERO } +
                 if key_state.up { mouse_look.up.clone() } else { Vec3::ZERO } +
                 if key_state.down { -mouse_look.up.clone() } else { Vec3::ZERO }
+            ) * (
+                if key_state.run { 3.0 } else { 1.0 }
             );
 
             let next_position = camera.translation + camera_move;
@@ -148,6 +151,7 @@ fn update_character_state(
     mut animation_players: Query<(&Parent, &mut AnimationPlayer)>,
     mut sounds_events: EventWriter<SoundsEvent>,
     settings: Res<SettingsAsset>,
+    key_state: Res<KeyInputState>,
 ) {
     if movement_state.noclip {
         return;
@@ -185,14 +189,26 @@ fn update_character_state(
                     player.play(animations.0[TOGGLE_SWITCH_ANIMATION_IDX].clone_weak()).repeat();
                 }
             } else if move_forward.length_squared() > 0.0001 {
-                if !(movement_state.playing_animation.is_some() && movement_state.playing_animation.unwrap() == FORWARD_ANIMATION_IDX) {
-                    movement_state.playing_animation = Some(FORWARD_ANIMATION_IDX);
-                    player.play(animations.0[FORWARD_ANIMATION_IDX].clone_weak()).repeat();
-                    // play footsteps
-                    sounds_events.send(SoundsEvent {
-                        action: SoundsEventAction::Resume,
-                        name: "footsteps".into(),
-                    });
+                if key_state.run {
+                    if !(movement_state.playing_animation.is_some() && movement_state.playing_animation.unwrap() == FORWARD_RUN_ANIMATION_IDX) {
+                        movement_state.playing_animation = Some(FORWARD_RUN_ANIMATION_IDX);
+                        player.play(animations.0[FORWARD_RUN_ANIMATION_IDX].clone_weak()).repeat();
+                        // play footsteps
+                        sounds_events.send(SoundsEvent {
+                            action: SoundsEventAction::Resume,
+                            name: "footsteps".into(),
+                        });
+                    }
+                } else {
+                    if !(movement_state.playing_animation.is_some() && movement_state.playing_animation.unwrap() == FORWARD_ANIMATION_IDX) {
+                        movement_state.playing_animation = Some(FORWARD_ANIMATION_IDX);
+                        player.play(animations.0[FORWARD_ANIMATION_IDX].clone_weak()).repeat();
+                        // play footsteps
+                        sounds_events.send(SoundsEvent {
+                            action: SoundsEventAction::Resume,
+                            name: "footsteps".into(),
+                        });
+                    }
                 }
             } else {
                 if !(movement_state.playing_animation.is_some() && movement_state.playing_animation.unwrap() == IDLE_ANIMATION_IDX) {
